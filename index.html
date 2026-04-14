@@ -361,6 +361,11 @@
             cursor: pointer; transition: transform .2s; padding: 0 4px;
         }
         .step.open .step-toggle { transform: rotate(180deg); }
+        .step-separator {
+            font-size: 9px; text-transform: uppercase; letter-spacing: .14em;
+            color: var(--dim); padding: 20px 0 4px;
+            border-top: 1px solid var(--border); margin-top: 8px;
+        }
 
         .step-body {
             display: none;
@@ -955,36 +960,49 @@ ok = <span class="k">True</span>       <span class="c"># True con la T maiuscola
         <p class="desc">Sintassi, tipi dinamici e pattern tipici del codice AI. Niente che non sai già — solo la traduzione.</p>
     </div>
 
-    <div class="content">
-        <h2>Tipi e variabili</h2>
-        <p>Python non richiede dichiarazioni di tipo. I type hints esistono per leggibilità e tooling (Pylance), ma non cambiano il comportamento a runtime.</p>
-        <div class="vs">
-            <div class="vs-col csharp">
-                <div class="vs-lang">// C#</div>
-                <pre><span class="k">string</span> nome = <span class="s">"Alice"</span>;
+    <div class="steps" style="max-width:680px">
+
+        <div class="step" id="m01-1">
+            <div class="step-hd">
+                <div class="checkbox" onclick="toggleStep('m01-1')">✓</div>
+                <span class="step-title">Tipi e variabili</span>
+                <button class="step-toggle" onclick="toggleExpand('m01-1')">▾</button>
+            </div>
+            <div class="step-body">
+                <p>Python non richiede dichiarazioni di tipo. I type hints esistono per leggibilità e tooling (Pylance), ma non cambiano il comportamento a runtime.</p>
+                <div class="vs">
+                    <div class="vs-col csharp">
+                        <div class="vs-lang">// C#</div>
+                        <pre><span class="k">string</span> nome = <span class="s">"Alice"</span>;
 <span class="k">List</span>&lt;<span class="k">int</span>&gt; nums = <span class="k">new</span>() { <span class="n">1</span>, <span class="n">2</span>, <span class="n">3</span> };
 <span class="k">var</span> mappa = <span class="k">new</span> Dictionary&lt;<span class="k">string</span>, <span class="k">int</span>&gt; {
     { <span class="s">"a"</span>, <span class="n">1</span> }, { <span class="s">"b"</span>, <span class="n">2</span> }
 };</pre>
-            </div>
-            <div class="vs-col python">
-                <div class="vs-lang"># Python</div>
-                <pre>nome: str = <span class="s">"Alice"</span>         <span class="c"># hint opzionale</span>
+                    </div>
+                    <div class="vs-col python">
+                        <div class="vs-lang"># Python</div>
+                        <pre>nome: str = <span class="s">"Alice"</span>         <span class="c"># hint opzionale</span>
 nums: list[int] = [<span class="n">1</span>, <span class="n">2</span>, <span class="n">3</span>]
 mappa: dict[str, int] = {
     <span class="s">"a"</span>: <span class="n">1</span>, <span class="s">"b"</span>: <span class="n">2</span>
 }</pre>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="content">
-        <h2>Classi e dataclasses</h2>
-        <p>L'AI usa spesso <code>dataclasses</code> o <code>Pydantic</code> invece di classi manuali — molto meno boilerplate di C#.</p>
-        <div class="vs">
-            <div class="vs-col csharp">
-                <div class="vs-lang">// C#</div>
-                <pre><span class="k">public class</span> Persona {
+        <div class="step" id="m01-2">
+            <div class="step-hd">
+                <div class="checkbox" onclick="toggleStep('m01-2')">✓</div>
+                <span class="step-title">Classi e dataclasses</span>
+                <button class="step-toggle" onclick="toggleExpand('m01-2')">▾</button>
+            </div>
+            <div class="step-body">
+                <p>L'AI usa spesso <code>dataclasses</code> o <code>Pydantic</code> invece di classi manuali — molto meno boilerplate di C#.</p>
+                <div class="vs">
+                    <div class="vs-col csharp">
+                        <div class="vs-lang">// C#</div>
+                        <pre><span class="k">public class</span> Persona {
   <span class="k">public string</span> Nome { <span class="k">get</span>; <span class="k">set</span>; }
   <span class="k">public int</span> Eta  { <span class="k">get</span>; <span class="k">set</span>; }
 
@@ -994,10 +1012,10 @@ mappa: dict[str, int] = {
   <span class="k">public string</span> Saluta() =>
     <span class="s">$"Ciao, sono {Nome}"</span>;
 }</pre>
-            </div>
-            <div class="vs-col python">
-                <div class="vs-lang"># Python</div>
-                <pre><span class="k">from</span> dataclasses <span class="k">import</span> dataclass
+                    </div>
+                    <div class="vs-col python">
+                        <div class="vs-lang"># Python</div>
+                        <pre><span class="k">from</span> dataclasses <span class="k">import</span> dataclass
 
 @dataclass
 <span class="k">class</span> Persona:
@@ -1008,24 +1026,30 @@ mappa: dict[str, int] = {
         <span class="k">return</span> <span class="s">f"Ciao, sono {self.nome}"</span>
 
 <span class="c"># @dataclass genera __init__, __repr__, __eq__</span></pre>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="content">
-        <h2>Pattern AI ricorrenti</h2>
-        <p>Il codice generato dall'AI ha fingerprint riconoscibili. Impara a identificarli:</p>
-        <ul>
-            <li>List comprehension invece dei for loop tradizionali</li>
-            <li>f-string per la formattazione (<code>f"valore: {x}"</code>)</li>
-            <li>Context manager <code>with</code> per file, connessioni, lock</li>
-            <li><code>*args</code> e <code>**kwargs</code> nelle firme delle funzioni</li>
-            <li>Type hints ovunque + Pydantic per i modelli dati</li>
-            <li><code>pathlib.Path</code> invece di <code>os.path</code></li>
-        </ul>
-        <div class="code-block" id="cb-patterns">
-            <button class="copy-btn" onclick="copyCode('cb-patterns')">copy</button>
-            <pre><span class="c"># Pattern tipici nel codice AI</span>
+        <div class="step" id="m01-3">
+            <div class="step-hd">
+                <div class="checkbox" onclick="toggleStep('m01-3')">✓</div>
+                <span class="step-title">Pattern AI ricorrenti</span>
+                <button class="step-toggle" onclick="toggleExpand('m01-3')">▾</button>
+            </div>
+            <div class="step-body">
+                <p>Il codice generato dall'AI ha fingerprint riconoscibili. Impara a identificarli:</p>
+                <ul>
+                    <li>List comprehension invece dei for loop tradizionali</li>
+                    <li>f-string per la formattazione (<code>f"valore: {x}"</code>)</li>
+                    <li>Context manager <code>with</code> per file, connessioni, lock</li>
+                    <li><code>*args</code> e <code>**kwargs</code> nelle firme delle funzioni</li>
+                    <li>Type hints ovunque + Pydantic per i modelli dati</li>
+                    <li><code>pathlib.Path</code> invece di <code>os.path</code></li>
+                </ul>
+                <div class="code-block" id="cb-patterns">
+                    <button class="copy-btn" onclick="copyCode('cb-patterns')">copy</button>
+                    <pre><span class="c"># Pattern tipici nel codice AI</span>
 
 <span class="c"># List comprehension</span>
 quadrati = [x**<span class="n">2</span> <span class="k">for</span> x <span class="k">in</span> range(<span class="n">10</span>) <span class="k">if</span> x % <span class="n">2</span> == <span class="n">0</span>]
@@ -1041,14 +1065,11 @@ quadrati = [x**<span class="n">2</span> <span class="k">for</span> x <span class
     nome: str
     email: str
     eta:  int | None = None  <span class="c"># Optional con | None</span></pre>
+                </div>
+            </div>
         </div>
-    </div>
 
-    <div class="row-header" style="margin-top:48px">
-        <h2>Tranelli frequenti da .NET</h2><div class="row-line"></div>
-    </div>
-
-    <div class="steps" style="max-width:680px;margin-top:24px">
+        <div class="step-separator">Tranelli frequenti da .NET</div>
 
         <div class="step" id="tr-1">
             <div class="step-hd">
