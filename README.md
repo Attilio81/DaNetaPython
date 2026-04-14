@@ -34,9 +34,9 @@ Il focus è su **cosa è diverso** da .NET e su come leggere, capire e validare 
 Apri `index.html` nel browser — niente server, niente install.
 
 - Naviga i moduli dalla sidebar
-- Spunta gli step del setup (progresso salvato in localStorage)
+- Spunta i singoli step di ogni modulo (progresso salvato in localStorage)
 - Copia i code snippet con un click
-- Scorciatoie tastiera: `s` setup · `1–5` moduli · `e` esercizi · `b` bonus
+- Scorciatoie tastiera: `0` home · `s` setup · `1–5` moduli · `e` esercizi · `b` bonus
 
 ---
 
