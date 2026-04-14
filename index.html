@@ -1046,6 +1046,223 @@ quadrati = [x**<span class="n">2</span> <span class="k">for</span> x <span class
         </div>
     </div>
 
+    <div class="row-header" style="margin-top:48px">
+        <h2>Tranelli frequenti da .NET</h2><div class="row-line"></div>
+    </div>
+
+    <div class="content">
+        <h2>pathlib — dimentica os.path</h2>
+        <p>L'AI usa sempre <code>pathlib.Path</code>. È il <code>System.IO.Path</code> di Python, ma orientato agli oggetti e molto più leggibile.</p>
+        <div class="vs">
+            <div class="vs-col csharp">
+                <div class="vs-lang">// C#</div>
+                <pre><span class="k">var</span> dir  = Path.GetDirectoryName(file);
+<span class="k">var</span> name = Path.GetFileNameWithoutExtension(file);
+<span class="k">var</span> dest = Path.Combine(dir, <span class="s">"out"</span>, name + <span class="s">".json"</span>);
+File.WriteAllText(dest, contenuto);</pre>
+            </div>
+            <div class="vs-col python">
+                <div class="vs-lang"># Python</div>
+                <pre><span class="k">from</span> pathlib <span class="k">import</span> Path
+
+p    = Path(file)
+dest = p.parent / <span class="s">"out"</span> / (p.stem + <span class="s">".json"</span>)
+dest.write_text(contenuto, encoding=<span class="s">"utf-8"</span>)
+<span class="c"># / è un operatore overloaded su Path</span></pre>
+            </div>
+        </div>
+        <div class="code-block" id="cb-pathlib">
+            <button class="copy-btn" onclick="copyCode('cb-pathlib')">copy</button>
+            <pre><span class="k">from</span> pathlib <span class="k">import</span> Path
+
+p = Path(<span class="s">"src/utils/helper.py"</span>)
+
+p.exists()          <span class="c"># True/False</span>
+p.suffix            <span class="c"># ".py"</span>
+p.stem              <span class="c"># "helper"</span>
+p.parent            <span class="c"># Path("src/utils")</span>
+p.read_text()       <span class="c"># legge il file</span>
+p.write_text(<span class="s">"..."</span>) <span class="c"># scrive il file</span>
+
+<span class="c"># glob ricorsivo</span>
+<span class="k">for</span> f <span class="k">in</span> Path(<span class="s">"src"</span>).rglob(<span class="s">"*.py"</span>):
+    print(f)</pre>
+        </div>
+    </div>
+
+    <div class="content">
+        <h2>Eccezioni — senza tipi precisi</h2>
+        <p>In C# catturi eccezioni tipizzate. In Python puoi farlo, ma il codice AI spesso usa eccezioni generiche o built-in. Impara i più comuni.</p>
+        <div class="vs">
+            <div class="vs-col csharp">
+                <div class="vs-lang">// C#</div>
+                <pre><span class="k">try</span> {
+    <span class="k">var</span> n = int.Parse(input);
+}
+<span class="k">catch</span> (FormatException ex) {
+    Console.WriteLine(ex.Message);
+}
+<span class="k">finally</span> {
+    Cleanup();
+}</pre>
+            </div>
+            <div class="vs-col python">
+                <div class="vs-lang"># Python</div>
+                <pre><span class="k">try</span>:
+    n = int(input)
+<span class="k">except</span> ValueError <span class="k">as</span> e:
+    print(e)
+<span class="k">except</span> (TypeError, OverflowError):
+    print(<span class="s">"tipo o overflow"</span>)
+<span class="k">finally</span>:
+    cleanup()   <span class="c"># identico a C#</span></pre>
+            </div>
+        </div>
+        <div class="code-block" id="cb-exceptions">
+            <button class="copy-btn" onclick="copyCode('cb-exceptions')">copy</button>
+            <pre><span class="c"># Eccezioni built-in più comuni nel codice AI</span>
+ValueError      <span class="c"># input non valido (≈ FormatException)</span>
+TypeError       <span class="c"># tipo sbagliato (≈ InvalidCastException)</span>
+KeyError        <span class="c"># chiave dict assente (≈ KeyNotFoundException)</span>
+AttributeError  <span class="c"># attributo non esiste (≈ NullReferenceException)</span>
+FileNotFoundError <span class="c"># file assente (≈ FileNotFoundException)</span>
+NotImplementedError <span class="c"># ≈ NotImplementedException</span>
+
+<span class="c"># Pattern frequente nel codice AI:</span>
+<span class="k">try</span>:
+    risultato = operazione_rischiosa()
+<span class="k">except</span> Exception <span class="k">as</span> e:
+    <span class="c"># ← troppo generico, ma l'AI lo usa spesso</span>
+    print(<span class="s">f"Errore: {e}"</span>)
+    <span class="k">raise</span>  <span class="c"># ← re-raise, non inghiottire l'errore</span></pre>
+        </div>
+    </div>
+
+    <div class="content">
+        <h2>Struttura pacchetti e __init__.py</h2>
+        <p>L'import in Python funziona diversamente da C#. Capirlo subito evita ore di <code>ModuleNotFoundError</code>.</p>
+        <div class="vs">
+            <div class="vs-col csharp">
+                <div class="vs-lang">// Struttura C#</div>
+                <pre>MioProgetto/
+  MioProgetto.csproj
+  Utils/
+    Helper.cs      <span class="c">// namespace MioProgetto.Utils</span>
+    Parser.cs</pre>
+            </div>
+            <div class="vs-col python">
+                <div class="vs-lang"># Struttura Python</div>
+                <pre>mio_progetto/
+  __init__.py    <span class="c"># ← rende la cartella un "pacchetto"</span>
+  utils/
+    __init__.py  <span class="c"># ← obbligatorio in ogni sottocartella</span>
+    helper.py
+    parser.py</pre>
+            </div>
+        </div>
+        <div class="code-block" id="cb-imports">
+            <button class="copy-btn" onclick="copyCode('cb-imports')">copy</button>
+            <pre><span class="c"># Importare da helper.py dentro utils/</span>
+<span class="k">from</span> mio_progetto.utils.helper <span class="k">import</span> mia_funzione
+<span class="k">from</span> mio_progetto.utils <span class="k">import</span> helper
+
+<span class="c"># Import relativo (dentro lo stesso pacchetto)</span>
+<span class="k">from</span> .helper <span class="k">import</span> mia_funzione   <span class="c"># . = cartella corrente</span>
+<span class="k">from</span> ..utils <span class="k">import</span> qualcosa       <span class="c"># .. = cartella padre</span>
+
+<span class="c"># __init__.py può esporre API pubblica del pacchetto</span>
+<span class="c"># utils/__init__.py:</span>
+<span class="k">from</span> .helper <span class="k">import</span> mia_funzione   <span class="c"># ora: from mio_progetto.utils import mia_funzione</span></pre>
+        </div>
+        <div class="callout">
+            <div class="callout-lbl">⚠ Errore comune</div>
+            <p>Se manca <code>__init__.py</code> in una cartella, Python non la riconosce come pacchetto e gli import falliscono con <code>ModuleNotFoundError</code>. Python 3.3+ supporta "namespace packages" senza __init__.py, ma il codice AI quasi sempre lo include.</p>
+        </div>
+    </div>
+
+    <div class="content">
+        <h2>requirements.txt e pyproject.toml</h2>
+        <p>L'equivalente del <code>.csproj</code> in Python. <code>requirements.txt</code> è il vecchio standard, <code>pyproject.toml</code> è il nuovo. L'AI li usa entrambi.</p>
+        <div class="code-block" id="cb-requirements">
+            <button class="copy-btn" onclick="copyCode('cb-requirements')">copy</button>
+            <pre><span class="c"># requirements.txt — lista dipendenze con versioni</span>
+fastapi==0.115.0
+pydantic>=2.0,&lt;3.0
+httpx
+pytest
+
+<span class="c"># Installa tutto in una volta:</span>
+pip install -r requirements.txt
+
+<span class="c"># Genera dal venv corrente:</span>
+pip freeze > requirements.txt</pre>
+        </div>
+        <div class="code-block" id="cb-pyproject">
+            <button class="copy-btn" onclick="copyCode('cb-pyproject')">copy</button>
+            <pre><span class="c"># pyproject.toml — standard moderno (≈ .csproj)</span>
+[project]
+name = <span class="s">"mio-progetto"</span>
+version = <span class="s">"0.1.0"</span>
+requires-python = <span class="s">">=3.11"</span>
+dependencies = [
+    <span class="s">"fastapi>=0.115"</span>,
+    <span class="s">"pydantic>=2.0"</span>,
+]
+
+[project.optional-dependencies]
+dev = [<span class="s">"pytest"</span>, <span class="s">"black"</span>, <span class="s">"pylint"</span>]
+
+<span class="c"># Installa con pip:</span>
+pip install -e .          <span class="c"># editable install (sviluppo locale)</span>
+pip install -e ".[dev]"   <span class="c"># con dipendenze dev</span></pre>
+        </div>
+    </div>
+
+    <div class="content">
+        <h2>Variabili d'ambiente con python-dotenv</h2>
+        <p>API key, connection string, configurazioni — mai hardcoded. Il pattern con <code>.env</code> è universale nel codice AI.</p>
+        <div class="code-block" id="cb-dotenv-install">
+            <button class="copy-btn" onclick="copyCode('cb-dotenv-install')">copy</button>
+            <pre>pip install python-dotenv</pre>
+        </div>
+        <div class="code-block" id="cb-dotenv">
+            <button class="copy-btn" onclick="copyCode('cb-dotenv')">copy</button>
+            <pre><span class="c"># .env  (NON committare su git — aggiungi a .gitignore)</span>
+ANTHROPIC_API_KEY=sk-ant-...
+DATABASE_URL=postgresql://localhost/mydb
+DEBUG=true</pre>
+        </div>
+        <div class="code-block" id="cb-dotenv-usage">
+            <button class="copy-btn" onclick="copyCode('cb-dotenv-usage')">copy</button>
+            <pre><span class="k">import</span> os
+<span class="k">from</span> dotenv <span class="k">import</span> load_dotenv
+
+load_dotenv()   <span class="c"># carica .env nella cartella corrente</span>
+
+api_key = os.getenv(<span class="s">"ANTHROPIC_API_KEY"</span>)
+db_url  = os.getenv(<span class="s">"DATABASE_URL"</span>, default=<span class="s">"sqlite:///local.db"</span>)
+debug   = os.getenv(<span class="s">"DEBUG"</span>, <span class="s">"false"</span>).lower() == <span class="s">"true"</span>
+
+<span class="c"># Pattern con Pydantic (frequente nel codice AI moderno)</span>
+<span class="k">from</span> pydantic_settings <span class="k">import</span> BaseSettings
+
+<span class="k">class</span> Settings(BaseSettings):
+    anthropic_api_key: str
+    database_url: str = <span class="s">"sqlite:///local.db"</span>
+    debug: bool = <span class="k">False</span>
+
+    <span class="k">class</span> Config:
+        env_file = <span class="s">".env"</span>
+
+settings = Settings()   <span class="c"># legge .env automaticamente</span>
+print(settings.debug)   <span class="c"># True/False già tipizzato</span></pre>
+        </div>
+        <div class="callout">
+            <div class="callout-lbl">🔒 Sicurezza</div>
+            <p>Aggiungi sempre <code>.env</code> al <code>.gitignore</code>. Non committare mai API key nel repo — anche privato.</p>
+        </div>
+    </div>
+
     <button class="complete-btn" id="btn-mod01" onclick="completeModule('mod01')">
         ✓ Segna modulo come completato
     </button>
