@@ -18,7 +18,9 @@ Il focus è su **cosa è diverso** da .NET e su come leggere, capire e validare 
 |--------|-----------|
 | 00 | Setup ambiente — Python 3.11+, VS Code, estensioni, venv |
 | 01 | Sintassi Python per chi viene da C# / VB.NET |
-| 02 | Leggere codice AI — duck typing, decoratori, generators, async |
+| | → Tipi e variabili, classi, dataclasses, pattern AI ricorrenti |
+| | → **Tranelli frequenti**: `pathlib`, eccezioni, `__init__.py`, `requirements.txt` / `pyproject.toml`, `python-dotenv` |
+| 02 | Leggere codice AI — duck typing, decoratori, generators, async/await |
 | 03 | Analisi statica — AST, radon, bandit |
 | 04 | Testing — pytest, mock, sandboxing |
 | 05 | Automazione — pipeline completa di review automatica |
@@ -41,10 +43,13 @@ Apri `index.html` nel browser — niente server, niente install.
 ## Tool necessari
 
 ```bash
-# Python
+# Moduli 00-05
 pip install pytest pylint black radon bandit
 
-# Per il modulo AGNO (bonus)
+# Modulo 01 — tranelli
+pip install python-dotenv pydantic-settings
+
+# Bonus AGNO
 pip install agno duckduckgo-search
 
 # API key (una delle due)
