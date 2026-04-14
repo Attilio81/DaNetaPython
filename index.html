@@ -1,0 +1,1856 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CorsoPython — da .NET a Python</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fragment+Mono:ital@0;1&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:       #07070F;
+            --surface:  #0D0D1A;
+            --surface2: #13132A;
+            --border:   #1E1E35;
+            --text:     #C8CFE8;
+            --dim:      #5B617A;
+            --accent:   #FFD43B;
+            --blue:     #3776AB;
+            --green:    #4ADE80;
+            --purple:   #A78BFA;
+            --red:      #F87171;
+            --orange:   #FB923C;
+            --font:     'Fragment Mono', monospace;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html { scroll-behavior: smooth; overflow-x: hidden; }
+        .layout { display: flex; min-height: 100vh; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 13px;
+            line-height: 1.75;
+        }
+
+        /* subtle grid backdrop */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,212,59,.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,212,59,.015) 1px, transparent 1px);
+            background-size: 48px 48px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── SIDEBAR ─────────────────────────────────────────── */
+        .sidebar {
+            position: fixed; left: 0; top: 0;
+            width: 256px; height: 100vh;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex; flex-direction: column;
+            z-index: 100; overflow-y: auto;
+        }
+
+        .sidebar-logo {
+            padding: 22px 18px 18px;
+            border-bottom: 1px solid var(--border);
+        }
+        .sidebar-logo .snake { font-size: 22px; }
+        .sidebar-logo .brand {
+            font-size: 15px;
+            color: var(--text);
+            margin-top: 6px;
+            font-style: italic;
+        }
+        .sidebar-logo .migration {
+            margin-top: 10px;
+            font-size: 11px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .sidebar-logo .net  { color: var(--purple); }
+        .sidebar-logo .arr  { color: var(--dim); }
+        .sidebar-logo .py   { color: var(--accent); }
+
+        /* global progress */
+        .sidebar-progress {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border);
+        }
+        .sidebar-progress .lbl {
+            font-size: 9px; color: var(--dim);
+            text-transform: uppercase; letter-spacing: .12em;
+            margin-bottom: 8px;
+        }
+        .track {
+            height: 3px; background: var(--border);
+            border-radius: 2px; overflow: hidden;
+        }
+        .fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--blue), var(--accent));
+            border-radius: 2px;
+            transition: width .5s ease;
+            width: 0%;
+        }
+        .progress-count { font-size: 10px; color: var(--dim); margin-top: 5px; }
+
+        /* nav items */
+        .nav-group { padding: 14px 0; border-bottom: 1px solid var(--border); }
+        .nav-group-title {
+            font-size: 9px; color: var(--dim);
+            text-transform: uppercase; letter-spacing: .12em;
+            padding: 0 18px; margin-bottom: 6px;
+        }
+        .nav-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 7px 18px;
+            cursor: pointer; border: none; background: transparent;
+            color: var(--text); font-family: var(--font); font-size: 12px;
+            width: 100%; text-align: left;
+            border-left: 2px solid transparent;
+            transition: all .15s;
+        }
+        .nav-item:hover { background: var(--surface2); color: var(--accent); }
+        .nav-item.active { border-left-color: var(--accent); background: var(--surface2); color: var(--accent); }
+        .nav-item.completed .nav-check { opacity: 1; }
+        .nav-num { font-size: 10px; color: var(--dim); min-width: 22px; }
+        .nav-label { flex: 1; }
+        .nav-check { font-size: 11px; color: var(--green); opacity: 0; transition: opacity .2s; }
+
+        /* keyboard hints */
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 14px 18px;
+            border-top: 1px solid var(--border);
+        }
+        .sidebar-footer .hint-title {
+            font-size: 9px; color: var(--dim);
+            text-transform: uppercase; letter-spacing: .1em;
+            margin-bottom: 8px;
+        }
+        .kbd-hint { display: flex; gap: 8px; align-items: center; margin-bottom: 4px; }
+        .kbd {
+            background: var(--surface2); border: 1px solid var(--border);
+            color: var(--text); font-family: var(--font); font-size: 10px;
+            padding: 1px 6px; min-width: 20px; text-align: center;
+        }
+        .kbd-desc { font-size: 10px; color: var(--dim); }
+
+        /* ── MAIN ────────────────────────────────────────────── */
+        .main { margin-left: 256px; flex: 1; position: relative; z-index: 1; }
+
+        .section { display: none; padding: 64px 72px; min-height: 100vh; animation: fadeIn .25s ease; }
+        .section.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+        /* ── HERO ────────────────────────────────────────────── */
+        .hero {
+            padding: 80px 72px;
+            min-height: 100vh;
+            display: flex; flex-direction: column; justify-content: center;
+        }
+        .hero-pre {
+            font-size: 10px; color: var(--accent);
+            letter-spacing: .14em; text-transform: uppercase;
+            margin-bottom: 28px;
+        }
+        .hero-pre::before { content: '>>> '; color: var(--dim); }
+
+        .hero-title {
+            font-size: clamp(36px, 6vw, 68px);
+            line-height: 1.05; font-style: italic;
+            margin-bottom: 24px;
+        }
+        .hero-title .t-net {
+            color: var(--purple);
+            text-decoration: line-through;
+            text-decoration-color: rgba(167,139,250,.25);
+        }
+        .hero-title .t-arr {
+            display: inline-block;
+            width: 80px;
+            height: 2px;
+            background: var(--dim);
+            vertical-align: middle;
+            margin: 0 20px;
+            position: relative;
+            font-size: 0;
+        }
+        .hero-title .t-arr::after {
+            content: '';
+            position: absolute;
+            right: -1px; top: 50%;
+            transform: translateY(-50%);
+            border-left: 10px solid var(--dim);
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+        }
+        .hero-title .t-py { color: var(--accent); }
+
+        .hero-sub {
+            font-size: 14px; color: var(--dim);
+            max-width: 460px; margin-bottom: 48px;
+            font-style: italic; line-height: 1.8;
+        }
+
+        .hero-stats { display: flex; gap: 48px; margin-bottom: 56px; }
+        .stat-n { font-size: 36px; color: var(--accent); line-height: 1; }
+        .stat-l { font-size: 10px; color: var(--dim); margin-top: 4px; }
+
+        /* migration meter */
+        .migration-meter {
+            margin-bottom: 48px;
+            max-width: 400px;
+        }
+        .meter-label {
+            display: flex; justify-content: space-between;
+            font-size: 10px; margin-bottom: 8px;
+        }
+        .meter-label .net-lbl { color: var(--purple); }
+        .meter-label .py-lbl  { color: var(--accent); }
+        .meter-track {
+            height: 6px;
+            background: linear-gradient(90deg, var(--purple) 0%, var(--border) 50%, var(--accent) 100%);
+            border-radius: 3px;
+            position: relative;
+        }
+        .meter-thumb {
+            position: absolute;
+            top: 50%; transform: translate(-50%, -50%);
+            width: 14px; height: 14px;
+            background: var(--text);
+            border: 2px solid var(--bg);
+            border-radius: 50%;
+            transition: left .6s ease;
+            left: 0%;
+        }
+
+        .cta-btn {
+            display: inline-flex; align-items: center; gap: 12px;
+            background: var(--accent); color: var(--bg);
+            padding: 14px 28px;
+            font-family: var(--font); font-size: 13px;
+            cursor: pointer; border: none;
+            transition: all .2s; text-decoration: none;
+        }
+        .cta-btn:hover { background: #fff; transform: translateY(-2px); }
+        .cta-arrow { transition: transform .2s; }
+        .cta-btn:hover .cta-arrow { transform: translateX(5px); }
+
+        /* module grid on home */
+        .modules-grid { margin-top: 80px; padding-top: 56px; border-top: 1px solid var(--border); }
+        .row-header {
+            display: flex; align-items: center; gap: 16px; margin-bottom: 32px;
+        }
+        .row-header h2 {
+            font-size: 9px; text-transform: uppercase;
+            letter-spacing: .14em; color: var(--dim); white-space: nowrap;
+        }
+        .row-line { flex: 1; height: 1px; background: var(--border); }
+
+        .mod-cards { display: grid; gap: 1px; overflow: hidden; transition: max-height .35s ease, opacity .3s ease; max-height: 2000px; opacity: 1; }
+        .mod-cards.collapsed { max-height: 0; opacity: 0; }
+        .mod-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 22px 26px;
+            cursor: pointer;
+            display: grid;
+            grid-template-columns: 72px 1fr 24px;
+            gap: 16px; align-items: center;
+            transition: all .2s;
+        }
+        .mod-card:hover { border-color: var(--accent); background: var(--surface2); }
+        .mod-card.completed { border-left: 3px solid var(--green); }
+
+        .mod-n {
+            font-size: 30px; color: var(--border);
+            font-style: italic; line-height: 1;
+            transition: color .2s;
+        }
+        .mod-card:hover .mod-n { color: var(--accent); }
+        .mod-card.completed .mod-n { color: var(--green); }
+
+        .mod-title { font-size: 14px; margin-bottom: 6px; }
+        .mod-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+        .tag {
+            font-size: 9px; padding: 2px 7px;
+            background: var(--surface2); color: var(--dim);
+            border: 1px solid var(--border);
+        }
+        .mod-arr { color: var(--border); font-size: 16px; transition: all .2s; }
+        .mod-card:hover .mod-arr { color: var(--accent); transform: translateX(4px); }
+
+        /* ── SECTION HEADERS ─────────────────────────────────── */
+        .sec-head { margin-bottom: 48px; }
+        .sec-head .badge {
+            font-size: 9px; color: var(--dim);
+            text-transform: uppercase; letter-spacing: .12em;
+            margin-bottom: 14px;
+        }
+        .sec-head h1 {
+            font-size: 28px; font-style: italic;
+            margin-bottom: 14px; line-height: 1.15;
+        }
+        .sec-head h1 .hl { color: var(--accent); }
+        .sec-head .desc { color: var(--dim); max-width: 560px; font-size: 13px; }
+
+        /* complete module btn */
+        .complete-btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: transparent; border: 1px solid var(--green);
+            color: var(--green); padding: 10px 22px;
+            font-family: var(--font); font-size: 12px;
+            cursor: pointer; transition: all .2s; margin-top: 40px;
+        }
+        .complete-btn:hover { background: var(--green); color: var(--bg); }
+        .complete-btn.done { background: var(--green); color: var(--bg); pointer-events: none; }
+
+        /* ── SETUP STEPS ─────────────────────────────────────── */
+        .setup-pbar {
+            height: 4px; background: var(--border);
+            margin-bottom: 40px; position: relative;
+        }
+        .setup-pbar .fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--blue), var(--accent));
+            transition: width .4s ease; width: 0%;
+        }
+        .setup-pbar .pbar-lbl {
+            position: absolute; right: 0; top: -20px;
+            font-size: 10px; color: var(--accent);
+        }
+
+        .steps { display: flex; flex-direction: column; gap: 12px; max-width: 680px; }
+
+        .step {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            transition: border-color .2s;
+        }
+        .step.done { border-color: rgba(74,222,128,.3); }
+
+        .step-hd {
+            display: flex; align-items: center; gap: 14px;
+            padding: 16px 22px; cursor: pointer;
+        }
+        .checkbox {
+            width: 18px; height: 18px;
+            border: 1.5px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; cursor: pointer; transition: all .2s;
+            font-size: 11px; color: transparent;
+        }
+        .step.done .checkbox {
+            border-color: var(--green); background: var(--green); color: var(--bg);
+        }
+        .step-title { flex: 1; font-size: 13px; }
+        .step.done .step-title { color: var(--dim); }
+        .step-toggle {
+            background: none; border: none; color: var(--dim);
+            font-family: var(--font); font-size: 14px;
+            cursor: pointer; transition: transform .2s; padding: 0 4px;
+        }
+        .step.open .step-toggle { transform: rotate(180deg); }
+
+        .step-body {
+            display: none;
+            padding: 0 22px 18px 54px;
+            border-top: 1px solid var(--border);
+        }
+        .step.open .step-body { display: block; padding-top: 16px; }
+
+        .step-body p { color: var(--dim); font-size: 12px; margin-bottom: 10px; }
+        .step-body p + p { margin-top: -4px; }
+
+        /* ── CODE BLOCKS ─────────────────────────────────────── */
+        .code-block {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            padding: 14px 16px; margin: 10px 0;
+            position: relative; overflow-x: auto;
+        }
+        .code-block pre {
+            font-family: var(--font); font-size: 12px;
+            color: var(--text); white-space: pre-wrap;
+            word-break: break-all;
+        }
+        /* syntax tokens */
+        .k  { color: var(--blue); }
+        .s  { color: var(--green); }
+        .c  { color: var(--dim); font-style: italic; }
+        .n  { color: var(--orange); }
+        .g  { color: var(--green); }
+        .pr { color: var(--accent); }
+        .dk { color: var(--purple); }
+
+        .copy-btn {
+            position: absolute; top: 8px; right: 8px;
+            background: var(--surface2); border: 1px solid var(--border);
+            color: var(--dim); font-family: var(--font); font-size: 10px;
+            padding: 3px 8px; cursor: pointer; transition: all .15s;
+        }
+        .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .copy-btn.copied { border-color: var(--green); color: var(--green); }
+
+        /* ── COMPARISON ─────────────────────────────────────── */
+        .vs {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 1px; background: var(--border);
+            margin: 20px 0; max-width: 760px;
+        }
+        .vs-col {
+            background: var(--surface); padding: 18px 20px;
+        }
+        .vs-col.single { grid-column: 1 / -1; }
+        .vs-lang {
+            font-size: 9px; text-transform: uppercase; letter-spacing: .1em;
+            margin-bottom: 12px; padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+        .vs-col.csharp .vs-lang  { color: var(--purple); }
+        .vs-col.python .vs-lang  { color: var(--accent); }
+        .vs-col.python .k        { color: var(--blue); }
+        .vs-col pre {
+            font-family: var(--font); font-size: 12px;
+            color: var(--text); white-space: pre;
+        }
+
+        /* ── EXT CARDS ───────────────────────────────────────── */
+        .ext-card {
+            background: var(--bg); border: 1px solid var(--border);
+            padding: 10px 14px; margin: 6px 0;
+            display: flex; align-items: center; gap: 12px;
+        }
+        .ext-icon { font-size: 18px; }
+        .ext-name { font-size: 12px; }
+        .ext-id   { font-size: 10px; color: var(--dim); }
+        .ext-badge {
+            margin-left: auto; font-size: 9px;
+            padding: 2px 8px; border: 1px solid;
+        }
+        .ext-badge.req { border-color: var(--accent); color: var(--accent); }
+        .ext-badge.opt { border-color: var(--dim);    color: var(--dim); }
+
+        /* ── CONTENT ─────────────────────────────────────────── */
+        .content { max-width: 700px; margin-bottom: 40px; }
+        .content h2 {
+            font-size: 16px; font-style: italic;
+            margin-bottom: 14px; color: var(--text);
+        }
+        .content h2::before { content: '## '; color: var(--dim); font-style: normal; }
+        .content p { color: var(--dim); font-size: 13px; margin-bottom: 10px; }
+        .content ul { list-style: none; margin: 10px 0; }
+        .content ul li {
+            color: var(--dim); font-size: 12px;
+            padding: 3px 0 3px 18px; position: relative;
+        }
+        .content ul li::before { content: '→'; position: absolute; left: 0; color: var(--accent); }
+
+        .callout {
+            background: var(--surface2); border-left: 3px solid var(--accent);
+            padding: 14px 18px; margin: 18px 0; max-width: 700px;
+        }
+        .callout-lbl { font-size: 9px; color: var(--accent); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 6px; }
+        .callout p   { color: var(--dim); font-size: 12px; margin: 0; }
+
+        /* ── EXERCISES ───────────────────────────────────────── */
+        .ex-card {
+            background: var(--surface); border: 1px solid var(--border);
+            padding: 22px; margin: 12px 0; max-width: 680px;
+            cursor: pointer; transition: border-color .2s;
+        }
+        .ex-card:hover { border-color: var(--accent); }
+        .ex-num   { font-size: 10px; color: var(--dim); margin-bottom: 6px; }
+        .ex-title { font-size: 14px; margin-bottom: 6px; }
+        .ex-desc  { font-size: 12px; color: var(--dim); margin-bottom: 14px; }
+        .ex-tags  { display: flex; gap: 8px; }
+        .diff {
+            font-size: 9px; padding: 2px 8px; border: 1px solid;
+        }
+        .diff.easy   { border-color: var(--green);  color: var(--green); }
+        .diff.medium { border-color: var(--accent);  color: var(--accent); }
+        .diff.hard   { border-color: var(--red);     color: var(--red); }
+
+        /* ── SCROLLBAR ───────────────────────────────────────── */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--dim); }
+
+        /* ── RESPONSIVE ──────────────────────────────────────── */
+        @media (max-width: 820px) {
+            .sidebar { width: 220px; }
+            .main    { margin-left: 220px; }
+            .hero    { padding: 48px 32px; }
+            .section { padding: 48px 32px; }
+            .vs      { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 560px) {
+            .sidebar { width: 100%; height: auto; position: relative; }
+            .main    { margin-left: 0; }
+            .hero    { padding: 32px 20px; }
+            .section { padding: 32px 20px; }
+            .hero-stats { gap: 24px; }
+            .mod-card { grid-template-columns: 40px 1fr 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="layout">
+<!-- ═══════════════════ SIDEBAR ═══════════════════ -->
+<nav class="sidebar">
+    <div class="sidebar-logo">
+        <div class="snake">🐍</div>
+        <div class="brand">CorsoPython</div>
+        <div class="migration">
+            <span class="net">C# / VB.NET</span>
+            <span class="arr">──→</span>
+            <span class="py">Python</span>
+        </div>
+    </div>
+
+    <div class="sidebar-progress">
+        <div class="lbl">Progresso globale</div>
+        <div class="track"><div class="fill" id="globalFill"></div></div>
+        <div class="progress-count" id="globalCount">0 / 7 completati</div>
+    </div>
+
+    <div class="nav-group">
+        <div class="nav-group-title">Corso</div>
+        <button class="nav-item active" id="nav-home"     onclick="go('home')">
+            <span class="nav-num">—</span><span class="nav-label">Panoramica</span>
+            <span class="nav-check">✓</span>
+        </button>
+    </div>
+
+    <div class="nav-group">
+        <div class="nav-group-title">Moduli</div>
+        <button class="nav-item" id="nav-setup"  onclick="go('setup')">
+            <span class="nav-num">00</span><span class="nav-label">Setup & Mindset</span>
+            <span class="nav-check">✓</span>
+        </button>
+        <button class="nav-item" id="nav-mod01"  onclick="go('mod01')">
+            <span class="nav-num">01</span><span class="nav-label">Python per .NET</span>
+            <span class="nav-check">✓</span>
+        </button>
+        <button class="nav-item" id="nav-mod02"  onclick="go('mod02')">
+            <span class="nav-num">02</span><span class="nav-label">Leggere codice AI</span>
+            <span class="nav-check">✓</span>
+        </button>
+        <button class="nav-item" id="nav-mod03"  onclick="go('mod03')">
+            <span class="nav-num">03</span><span class="nav-label">Analisi Statica</span>
+            <span class="nav-check">✓</span>
+        </button>
+        <button class="nav-item" id="nav-mod04"  onclick="go('mod04')">
+            <span class="nav-num">04</span><span class="nav-label">Testing & Validazione</span>
+            <span class="nav-check">✓</span>
+        </button>
+        <button class="nav-item" id="nav-mod05"  onclick="go('mod05')">
+            <span class="nav-num">05</span><span class="nav-label">Automazione Avanzata</span>
+            <span class="nav-check">✓</span>
+        </button>
+    </div>
+
+    <div class="nav-group">
+        <div class="nav-group-title">Pratica</div>
+        <button class="nav-item" id="nav-ex"  onclick="go('ex')">
+            <span class="nav-num">EX</span><span class="nav-label">Esercizi</span>
+            <span class="nav-check">✓</span>
+        </button>
+        <button class="nav-item" id="nav-bonus" onclick="go('bonus')">
+            <span class="nav-num" style="color:var(--accent)">🤖</span><span class="nav-label">Bonus — Agente AI</span>
+            <span class="nav-check">✓</span>
+        </button>
+    </div>
+
+    <div class="sidebar-footer">
+        <div class="hint-title">Scorciatoie</div>
+        <div class="kbd-hint"><span class="kbd">0</span><span class="kbd-desc">Panoramica</span></div>
+        <div class="kbd-hint"><span class="kbd">s</span><span class="kbd-desc">Setup</span></div>
+        <div class="kbd-hint"><span class="kbd">1–5</span><span class="kbd-desc">Moduli</span></div>
+        <div class="kbd-hint"><span class="kbd">e</span><span class="kbd-desc">Esercizi</span></div>
+        <div class="kbd-hint"><span class="kbd">r</span><span class="kbd-desc">Reset progresso</span></div>
+    </div>
+</nav>
+
+<!-- ═══════════════════ MAIN ═══════════════════════ -->
+<main class="main">
+
+<!-- ── HOME ───────────────────────────────────────── -->
+<section class="section active" id="section-home">
+    <div class="modules-grid" style="margin-top:0;padding-top:0;border-top:none">
+        <div class="row-header" onclick="toggleModules()" style="cursor:pointer">
+            <h2>Percorso completo</h2>
+            <div class="row-line"></div>
+            <span id="modulesToggle" style="font-size:11px;color:var(--dim);white-space:nowrap;margin-left:12px">▾ chiudi</span>
+        </div>
+        <div class="mod-cards" id="modCards">
+            <div class="mod-card" id="card-setup" onclick="go('setup')">
+                <div class="mod-n">00</div>
+                <div>
+                    <div class="mod-title">Setup &amp; Mindset</div>
+                    <div class="mod-tags">
+                        <span class="tag">vscode</span>
+                        <span class="tag">python 3.11+</span>
+                        <span class="tag">venv</span>
+                    </div>
+                </div>
+                <div class="mod-arr">→</div>
+            </div>
+            <div class="mod-card" id="card-mod01" onclick="go('mod01')">
+                <div class="mod-n">01</div>
+                <div>
+                    <div class="mod-title">Python per chi viene da .NET</div>
+                    <div class="mod-tags">
+                        <span class="tag">sintassi</span>
+                        <span class="tag">tipi dinamici</span>
+                        <span class="tag">pattern AI</span>
+                    </div>
+                </div>
+                <div class="mod-arr">→</div>
+            </div>
+            <div class="mod-card" id="card-mod02" onclick="go('mod02')">
+                <div class="mod-n">02</div>
+                <div>
+                    <div class="mod-title">Leggere codice AI</div>
+                    <div class="mod-tags">
+                        <span class="tag">duck typing</span>
+                        <span class="tag">decoratori</span>
+                        <span class="tag">generators</span>
+                        <span class="tag">async/await</span>
+                    </div>
+                </div>
+                <div class="mod-arr">→</div>
+            </div>
+            <div class="mod-card" id="card-mod03" onclick="go('mod03')">
+                <div class="mod-n">03</div>
+                <div>
+                    <div class="mod-title">Analisi Statica</div>
+                    <div class="mod-tags">
+                        <span class="tag">AST</span>
+                        <span class="tag">metriche</span>
+                        <span class="tag">linting</span>
+                    </div>
+                </div>
+                <div class="mod-arr">→</div>
+            </div>
+            <div class="mod-card" id="card-mod04" onclick="go('mod04')">
+                <div class="mod-n">04</div>
+                <div>
+                    <div class="mod-title">Testing &amp; Validazione</div>
+                    <div class="mod-tags">
+                        <span class="tag">pytest</span>
+                        <span class="tag">mock</span>
+                        <span class="tag">sandboxing</span>
+                    </div>
+                </div>
+                <div class="mod-arr">→</div>
+            </div>
+            <div class="mod-card" id="card-mod05" onclick="go('mod05')">
+                <div class="mod-n">05</div>
+                <div>
+                    <div class="mod-title">Automazione Avanzata</div>
+                    <div class="mod-tags">
+                        <span class="tag">pipeline</span>
+                        <span class="tag">review automatica</span>
+                    </div>
+                </div>
+                <div class="mod-arr">→</div>
+            </div>
+            <div class="mod-card" id="card-ex" onclick="go('ex')">
+                <div class="mod-n" style="font-style:normal;color:var(--accent)">EX</div>
+                <div>
+                    <div class="mod-title">Esercizi — Codice AI Reale</div>
+                    <div class="mod-tags">
+                        <span class="tag">ChatGPT</span>
+                        <span class="tag">Claude</span>
+                        <span class="tag">Copilot</span>
+                    </div>
+                </div>
+                <div class="mod-arr">→</div>
+            </div>
+            <div class="mod-card" id="card-bonus" onclick="go('bonus')" style="border-left:2px solid var(--accent)">
+                <div class="mod-n" style="font-style:normal;font-size:26px">🤖</div>
+                <div>
+                    <div class="mod-title">Bonus — Crea il tuo Agente AI</div>
+                    <div class="mod-tags">
+                        <span class="tag">AGNO</span>
+                        <span class="tag">Claude</span>
+                        <span class="tag">tools</span>
+                        <span class="tag">agenti</span>
+                    </div>
+                </div>
+                <div class="mod-arr">→</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── SETUP ───────────────────────────────────────── -->
+<section class="section" id="section-setup">
+    <div class="sec-head">
+        <div class="badge">Modulo 00</div>
+        <h1>Setup &amp; <span class="hl">Mindset</span></h1>
+        <p class="desc">Configura VS Code e l'ambiente Python. Spunta ogni step — il progresso è salvato localmente.</p>
+    </div>
+
+    <div class="setup-pbar">
+        <div class="fill" id="setupFill"></div>
+        <span class="pbar-lbl" id="setupLbl">0 / 8</span>
+    </div>
+
+    <div class="steps" id="stepsList">
+
+        <div class="step" id="st-1">
+            <div class="step-hd">
+                <div class="checkbox" onclick="toggleStep('st-1')">✓</div>
+                <span class="step-title">1. Installa Python 3.11+</span>
+                <button class="step-toggle" onclick="toggleExpand('st-1')">▾</button>
+            </div>
+            <div class="step-body">
+                <p>Scarica da python.org oppure usa winget:</p>
+                <div class="code-block" id="cb-py-install">
+                    <button class="copy-btn" onclick="copyCode('cb-py-install')">copy</button>
+                    <pre><span class="c"># PowerShell / Windows Terminal</span>
+winget install Python.Python.3.11</pre>
+                </div>
+                <p>Verifica:</p>
+                <div class="code-block">
+                    <pre><span class="pr">&gt;</span> python --version
+<span class="g">Python 3.11.x</span>
+<span class="pr">&gt;</span> pip --version
+<span class="g">pip 23.x.x</span></pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="step" id="st-2">
+            <div class="step-hd">
+                <div class="checkbox" onclick="toggleStep('st-2')">✓</div>
+                <span class="step-title">2. Installa Visual Studio Code</span>
+                <button class="step-toggle" onclick="toggleExpand('st-2')">▾</button>
+            </div>
+            <div class="step-body">
+                <div class="code-block" id="cb-vscode">
+                    <button class="copy-btn" onclick="copyCode('cb-vscode')">copy</button>
+                    <pre>winget install Microsoft.VisualStudioCode</pre>
+                </div>
+                <p>Oppure scarica da code.visualstudio.com — versione Stable.</p>
+            </div>
+        </div>
+
+        <div class="step" id="st-3">
+            <div class="step-hd">
+                <div class="checkbox" onclick="toggleStep('st-3')">✓</div>
+                <span class="step-title">3. Installa estensioni essenziali</span>
+                <button class="step-toggle" onclick="toggleExpand('st-3')">▾</button>
+            </div>
+            <div class="step-body">
+                <p>Dal terminale integrato di VSCode (Ctrl+`):</p>
+                <div class="code-block" id="cb-ext">
+                    <button class="copy-btn" onclick="copyCode('cb-ext')">copy</button>
+                    <pre>code --install-extension ms-python.python
+code --install-extension ms-python.pylance
+code --install-extension ms-python.black-formatter
+code --install-extension ms-python.isort
+code --install-extension eamodio.gitlens</pre>
+                </div>
+                <div class="ext-card">
+                    <span class="ext-icon">🐍</span>
+                    <div><div class="ext-name">Python</div><div class="ext-id">ms-python.python</div></div>
+                    <span class="ext-badge req">obbligatoria</span>
+                </div>
+                <div class="ext-card">
+                    <span class="ext-icon">⚡</span>
+                    <div><div class="ext-name">Pylance</div><div class="ext-id">ms-python.pylance</div></div>
+                    <span class="ext-badge req">obbligatoria</span>
+                </div>
+                <div class="ext-card">
+                    <span class="ext-icon">⬛</span>
+                    <div><div class="ext-name">Black Formatter</div><div class="ext-id">ms-python.black-formatter</div></div>
+                    <span class="ext-badge req">obbligatoria</span>
+                </div>
+                <div class="ext-card">
+                    <span class="ext-icon">🔀</span>
+                    <div><div class="ext-name">isort</div><div class="ext-id">ms-python.isort</div></div>
+                    <span class="ext-badge req">obbligatoria</span>
+                </div>
+                <div class="ext-card">
+                    <span class="ext-icon">🔍</span>
+                    <div><div class="ext-name">GitLens</div><div class="ext-id">eamodio.gitlens</div></div>
+                    <span class="ext-badge opt">facoltativa</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="step" id="st-4">
+            <div class="step-hd">
+                <div class="checkbox" onclick="toggleStep('st-4')">✓</div>
+                <span class="step-title">4. Configura settings.json</span>
+                <button class="step-toggle" onclick="toggleExpand('st-4')">▾</button>
+            </div>
+            <div class="step-body">
+                <p><strong>Ctrl+Shift+P</strong> → "Open User Settings (JSON)"</p>
+                <div class="code-block" id="cb-settings">
+                    <button class="copy-btn" onclick="copyCode('cb-settings')">copy</button>
+                    <pre>{
+  <span class="c">// Python interpreter</span>
+  "python.defaultInterpreterPath": "python",
+  "python.analysis.typeCheckingMode": "basic",
+  "python.analysis.autoImportCompletions": true,
+
+  <span class="c">// Auto-format on save</span>
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit"
+    }
+  },
+
+  <span class="c">// Editor quality-of-life</span>
+  "editor.fontFamily": "'JetBrains Mono', Consolas, monospace",
+  "editor.fontSize": 14,
+  "editor.fontLigatures": true,
+  "editor.rulers": [88],
+  "editor.minimap.enabled": false,
+  "editor.renderWhitespace": "boundary"
+}</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="step" id="st-5">
+            <div class="step-hd">
+                <div class="checkbox" onclick="toggleStep('st-5')">✓</div>
+                <span class="step-title">5. Installa pacchetti pip del corso</span>
+                <button class="step-toggle" onclick="toggleExpand('st-5')">▾</button>
+            </div>
+            <div class="step-body">
+                <div class="code-block" id="cb-pip">
+                    <button class="copy-btn" onclick="copyCode('cb-pip')">copy</button>
+                    <pre>pip install pytest pylint black radon bandit</pre>
+                </div>
+                <div class="vs" style="max-width:100%;grid-template-columns:1fr;">
+                    <div class="vs-col single">
+                        <pre><span class="k">pytest</span>   — testing framework  (≈ NUnit / xUnit)
+<span class="k">pylint</span>   — linter statico      (≈ ReSharper)
+<span class="k">black</span>    — formatter rigido    (≈ dotnet format)
+<span class="k">radon</span>    — complessità ciclomatica
+<span class="k">bandit</span>   — analisi sicurezza statica</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="step" id="st-6">
+            <div class="step-hd">
+                <div class="checkbox" onclick="toggleStep('st-6')">✓</div>
+                <span class="step-title">6. Crea un Virtual Environment</span>
+                <button class="step-toggle" onclick="toggleExpand('st-6')">▾</button>
+            </div>
+            <div class="step-body">
+                <p>In Python il <strong>venv</strong> isola le dipendenze per progetto — equivale al project scope di .NET. Usalo sempre.</p>
+                <div class="code-block" id="cb-venv">
+                    <button class="copy-btn" onclick="copyCode('cb-venv')">copy</button>
+                    <pre><span class="c"># Crea venv nella cartella del progetto</span>
+python -m venv .venv
+
+<span class="c"># Attiva (Windows PowerShell)</span>
+.venv\Scripts\Activate.ps1
+
+<span class="c"># Attiva (bash / Mac / Linux)</span>
+source .venv/bin/activate
+
+<span class="c"># VSCode lo rileva automaticamente:</span>
+<span class="c"># Ctrl+Shift+P → "Python: Select Interpreter"</span>
+<span class="c"># → scegli .venv</span></pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="step" id="st-7">
+            <div class="step-hd">
+                <div class="checkbox" onclick="toggleStep('st-7')">✓</div>
+                <span class="step-title">7. Primo file Python — test del debugger</span>
+                <button class="step-toggle" onclick="toggleExpand('st-7')">▾</button>
+            </div>
+            <div class="step-body">
+                <p>Crea <strong>hello.py</strong> e premi <strong>F5</strong> per il debugger integrato:</p>
+                <div class="code-block" id="cb-hello">
+                    <button class="copy-btn" onclick="copyCode('cb-hello')">copy</button>
+                    <pre><span class="c"># hello.py</span>
+
+<span class="k">def</span> saluta(nome: str) -> str:
+    <span class="k">return</span> <span class="s">f"Ciao {nome}, benvenuto in Python!"</span>
+
+<span class="k">if</span> __name__ == <span class="s">"__main__"</span>:
+    print(saluta(<span class="s">"sviluppatore .NET"</span>))</pre>
+                </div>
+                <div class="code-block">
+                    <pre><span class="pr">&gt;</span> python hello.py
+<span class="g">Ciao sviluppatore .NET, benvenuto in Python!</span></pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="step" id="st-8">
+            <div class="step-hd">
+                <div class="checkbox" onclick="toggleStep('st-8')">✓</div>
+                <span class="step-title">8. Mindset — le differenze fondamentali</span>
+                <button class="step-toggle" onclick="toggleExpand('st-8')">▾</button>
+            </div>
+            <div class="step-body">
+                <p>Le cose che faranno inciampare chiunque viene da .NET:</p>
+                <div class="vs">
+                    <div class="vs-col csharp">
+                        <div class="vs-lang">// C# / VB.NET</div>
+                        <pre><span class="k">string</span> nome = <span class="s">"Alice"</span>;  <span class="c">// tipo fisso</span>
+<span class="k">bool</span> ok = <span class="k">true</span>;          <span class="c">// lowercase</span>
+
+<span class="c">// parentesi graffe = blocchi</span>
+<span class="k">if</span> (ok) {
+    Console.WriteLine(nome);
+}</pre>
+                    </div>
+                    <div class="vs-col python">
+                        <div class="vs-lang"># Python</div>
+                        <pre>nome = <span class="s">"Alice"</span>   <span class="c"># tipo dinamico</span>
+ok = <span class="k">True</span>       <span class="c"># True con la T maiuscola</span>
+
+<span class="c"># indentazione = blocchi</span>
+<span class="k">if</span> ok:
+    print(nome)</pre>
+                    </div>
+                </div>
+                <div class="callout">
+                    <div class="callout-lbl">💡 Regola d'oro</div>
+                    <p>Python non è C# senza tipi. È un linguaggio diverso con filosofia diversa. Le parentesi graffe non esistono per scelta, non per dimenticanza.</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <button class="complete-btn" id="btn-setup" onclick="completeModule('setup')">
+        ✓ Segna modulo come completato
+    </button>
+</section>
+
+<!-- ── MODULO 01 ───────────────────────────────────── -->
+<section class="section" id="section-mod01">
+    <div class="sec-head">
+        <div class="badge">Modulo 01</div>
+        <h1>Python per chi <span class="hl">viene da .NET</span></h1>
+        <p class="desc">Sintassi, tipi dinamici e pattern tipici del codice AI. Niente che non sai già — solo la traduzione.</p>
+    </div>
+
+    <div class="content">
+        <h2>Tipi e variabili</h2>
+        <p>Python non richiede dichiarazioni di tipo. I type hints esistono per leggibilità e tooling (Pylance), ma non cambiano il comportamento a runtime.</p>
+        <div class="vs">
+            <div class="vs-col csharp">
+                <div class="vs-lang">// C#</div>
+                <pre><span class="k">string</span> nome = <span class="s">"Alice"</span>;
+<span class="k">List</span>&lt;<span class="k">int</span>&gt; nums = <span class="k">new</span>() { <span class="n">1</span>, <span class="n">2</span>, <span class="n">3</span> };
+<span class="k">var</span> mappa = <span class="k">new</span> Dictionary&lt;<span class="k">string</span>, <span class="k">int</span>&gt; {
+    { <span class="s">"a"</span>, <span class="n">1</span> }, { <span class="s">"b"</span>, <span class="n">2</span> }
+};</pre>
+            </div>
+            <div class="vs-col python">
+                <div class="vs-lang"># Python</div>
+                <pre>nome: str = <span class="s">"Alice"</span>         <span class="c"># hint opzionale</span>
+nums: list[int] = [<span class="n">1</span>, <span class="n">2</span>, <span class="n">3</span>]
+mappa: dict[str, int] = {
+    <span class="s">"a"</span>: <span class="n">1</span>, <span class="s">"b"</span>: <span class="n">2</span>
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <div class="content">
+        <h2>Classi e dataclasses</h2>
+        <p>L'AI usa spesso <code>dataclasses</code> o <code>Pydantic</code> invece di classi manuali — molto meno boilerplate di C#.</p>
+        <div class="vs">
+            <div class="vs-col csharp">
+                <div class="vs-lang">// C#</div>
+                <pre><span class="k">public class</span> Persona {
+  <span class="k">public string</span> Nome { <span class="k">get</span>; <span class="k">set</span>; }
+  <span class="k">public int</span> Eta  { <span class="k">get</span>; <span class="k">set</span>; }
+
+  <span class="k">public</span> Persona(<span class="k">string</span> nome, <span class="k">int</span> eta)
+    => (Nome, Eta) = (nome, eta);
+
+  <span class="k">public string</span> Saluta() =>
+    <span class="s">$"Ciao, sono {Nome}"</span>;
+}</pre>
+            </div>
+            <div class="vs-col python">
+                <div class="vs-lang"># Python</div>
+                <pre><span class="k">from</span> dataclasses <span class="k">import</span> dataclass
+
+@dataclass
+<span class="k">class</span> Persona:
+    nome: str
+    eta:  int
+
+    <span class="k">def</span> saluta(self) -> str:
+        <span class="k">return</span> <span class="s">f"Ciao, sono {self.nome}"</span>
+
+<span class="c"># @dataclass genera __init__, __repr__, __eq__</span></pre>
+            </div>
+        </div>
+    </div>
+
+    <div class="content">
+        <h2>Pattern AI ricorrenti</h2>
+        <p>Il codice generato dall'AI ha fingerprint riconoscibili. Impara a identificarli:</p>
+        <ul>
+            <li>List comprehension invece dei for loop tradizionali</li>
+            <li>f-string per la formattazione (<code>f"valore: {x}"</code>)</li>
+            <li>Context manager <code>with</code> per file, connessioni, lock</li>
+            <li><code>*args</code> e <code>**kwargs</code> nelle firme delle funzioni</li>
+            <li>Type hints ovunque + Pydantic per i modelli dati</li>
+            <li><code>pathlib.Path</code> invece di <code>os.path</code></li>
+        </ul>
+        <div class="code-block" id="cb-patterns">
+            <button class="copy-btn" onclick="copyCode('cb-patterns')">copy</button>
+            <pre><span class="c"># Pattern tipici nel codice AI</span>
+
+<span class="c"># List comprehension</span>
+quadrati = [x**<span class="n">2</span> <span class="k">for</span> x <span class="k">in</span> range(<span class="n">10</span>) <span class="k">if</span> x % <span class="n">2</span> == <span class="n">0</span>]
+
+<span class="c"># Context manager</span>
+<span class="k">with</span> open(<span class="s">"file.txt"</span>, encoding=<span class="s">"utf-8"</span>) <span class="k">as</span> f:
+    testo = f.read()
+
+<span class="c"># Pydantic model (frequente nell'AI)</span>
+<span class="k">from</span> pydantic <span class="k">import</span> BaseModel
+
+<span class="k">class</span> User(BaseModel):
+    nome: str
+    email: str
+    eta:  int | None = None  <span class="c"># Optional con | None</span></pre>
+        </div>
+    </div>
+
+    <button class="complete-btn" id="btn-mod01" onclick="completeModule('mod01')">
+        ✓ Segna modulo come completato
+    </button>
+</section>
+
+<!-- ── MODULO 02 ───────────────────────────────────── -->
+<section class="section" id="section-mod02">
+    <div class="sec-head">
+        <div class="badge">Modulo 02</div>
+        <h1>Leggere <span class="hl">codice AI</span></h1>
+        <p class="desc">Duck typing, decoratori, generators, async/await. I costrutti che l'AI usa costantemente e che sembrano magia.</p>
+    </div>
+
+    <div class="content">
+        <h2>Duck Typing</h2>
+        <p>Python non controlla il tipo — controlla il comportamento. Se un oggetto ha il metodo cercato, funziona. Niente interfacce, niente cast espliciti.</p>
+        <div class="code-block" id="cb-duck">
+            <button class="copy-btn" onclick="copyCode('cb-duck')">copy</button>
+            <pre><span class="c"># Qualunque oggetto con .read() funziona — non importa il tipo</span>
+<span class="k">def</span> processa(sorgente):
+    contenuto = sorgente.read()
+    <span class="k">return</span> contenuto.strip().upper()
+
+<span class="c"># Tutti e tre funzionano:</span>
+processa(open(<span class="s">"file.txt"</span>))           <span class="c"># file reale</span>
+processa(io.StringIO(<span class="s">"testo"</span>))       <span class="c"># stringa in memoria</span>
+processa(requests.get(url).raw)      <span class="c"># stream HTTP</span>
+
+<span class="c"># In C# dovresti dichiarare IReadable o simile</span>
+<span class="c"># In Python: se ha .read(), funziona. Punto.</span></pre>
+        </div>
+        <div class="callout">
+            <div class="callout-lbl">📖 Da .NET developer</div>
+            <p>Il duck typing sostituisce le interfacce. All'inizio fa paura. Poi diventa un superpotere: puoi passare mock, stub, oggetti custom senza dover implementare interfacce.</p>
+        </div>
+    </div>
+
+    <div class="content">
+        <h2>Decoratori</h2>
+        <p>Funzioni che wrappano altre funzioni. L'AI li usa costantemente per routing, auth, caching, retry. Concettualmente simili agli Attribute di C# ma molto più potenti.</p>
+        <div class="vs">
+            <div class="vs-col csharp">
+                <div class="vs-lang">// C# — Attribute</div>
+                <pre>[HttpGet(<span class="s">"/users"</span>)]
+[Authorize]
+<span class="k">public</span> IActionResult GetUsers()
+{
+    <span class="k">return</span> Ok(users);
+}</pre>
+            </div>
+            <div class="vs-col python">
+                <div class="vs-lang"># Python — Decoratore</div>
+                <pre>@app.get(<span class="s">"/users"</span>)
+@require_auth
+<span class="k">async def</span> get_users():
+    <span class="k">return</span> users
+
+<span class="c"># stessa semantica, più composabile</span></pre>
+            </div>
+        </div>
+    </div>
+
+    <div class="content">
+        <h2>Generators</h2>
+        <p>Producono valori in modo lazy, uno alla volta. Equivale a <code>IEnumerable&lt;T&gt;</code> con <code>yield return</code> in C#. Usa <code>yield</code> invece di costruire una lista.</p>
+        <div class="code-block" id="cb-gen">
+            <button class="copy-btn" onclick="copyCode('cb-gen')">copy</button>
+            <pre><span class="c"># Generator — lazy, nessuna lista in memoria</span>
+<span class="k">def</span> leggi_righe(file_path: str):
+    <span class="k">with</span> open(file_path) <span class="k">as</span> f:
+        <span class="k">for</span> riga <span class="k">in</span> f:
+            <span class="k">yield</span> riga.strip()
+
+<span class="c"># Consuma solo quando serve</span>
+<span class="k">for</span> riga <span class="k">in</span> leggi_righe(<span class="s">"big_file.txt"</span>):
+    processa(riga)</pre>
+        </div>
+    </div>
+
+    <div class="content">
+        <h2>async/await</h2>
+        <p>Quasi identico a C#. Stessa semantica: non blocca il thread, permette concorrenza. Differenza: in Python serve un event loop esplicito (asyncio o framework come FastAPI).</p>
+        <div class="vs">
+            <div class="vs-col csharp">
+                <div class="vs-lang">// C#</div>
+                <pre><span class="k">public async</span> Task&lt;<span class="k">string</span>&gt; FetchData()
+{
+    <span class="k">var</span> resp = <span class="k">await</span> http.GetAsync(url);
+    <span class="k">return await</span> resp.Content.ReadAsStringAsync();
+}</pre>
+            </div>
+            <div class="vs-col python">
+                <div class="vs-lang"># Python</div>
+                <pre><span class="k">async def</span> fetch_data() -> str:
+    <span class="k">async with</span> session.get(url) <span class="k">as</span> resp:
+        <span class="k">return await</span> resp.text()
+
+<span class="c"># stessa idea, leggermente diverso</span></pre>
+            </div>
+        </div>
+    </div>
+
+    <button class="complete-btn" id="btn-mod02" onclick="completeModule('mod02')">
+        ✓ Segna modulo come completato
+    </button>
+</section>
+
+<!-- ── MODULO 03 ───────────────────────────────────── -->
+<section class="section" id="section-mod03">
+    <div class="sec-head">
+        <div class="badge">Modulo 03</div>
+        <h1>Analisi <span class="hl">Statica</span></h1>
+        <p class="desc">AST, metriche, linting programmatico. Come un compilatore legge il codice — built-in, zero dipendenze.</p>
+    </div>
+
+    <div class="content">
+        <h2>Abstract Syntax Tree</h2>
+        <p>Python espone il suo AST come libreria standard. Puoi leggere, visitare e trasformare qualsiasi file Python. Analogo a Roslyn in C# — ma incluso nella stdlib.</p>
+        <div class="code-block" id="cb-ast">
+            <button class="copy-btn" onclick="copyCode('cb-ast')">copy</button>
+            <pre><span class="k">import</span> ast
+
+codice = <span class="s">"""
+def somma(a: int, b: int) -> int:
+    return a + b
+"""</span>
+
+tree = ast.parse(codice)
+
+<span class="k">for</span> node <span class="k">in</span> ast.walk(tree):
+    <span class="k">if</span> isinstance(node, ast.FunctionDef):
+        args = [a.arg <span class="k">for</span> a <span class="k">in</span> node.args.args]
+        print(<span class="s">f"Funzione: {node.name}({', '.join(args)})"</span>)
+        print(<span class="s">f"Linea:    {node.lineno}"</span>)</pre>
+        </div>
+        <div class="callout">
+            <div class="callout-lbl">💡 Mapping concettuale</div>
+            <p><code>ast.parse()</code> → <code>CSharpSyntaxTree.ParseText()</code><br>
+            <code>ast.walk()</code> → visitor pattern di Roslyn<br>
+            <code>ast.FunctionDef</code> → <code>MethodDeclarationSyntax</code></p>
+        </div>
+    </div>
+
+    <div class="content">
+        <h2>Visitor pattern con NodeVisitor</h2>
+        <p>Per analisi strutturate usa <code>ast.NodeVisitor</code> — più pulito di <code>ast.walk()</code> per casi complessi.</p>
+        <div class="code-block" id="cb-visitor">
+            <button class="copy-btn" onclick="copyCode('cb-visitor')">copy</button>
+            <pre><span class="k">class</span> FunctionAnalyzer(ast.NodeVisitor):
+    <span class="k">def</span> __init__(self):
+        self.functions = []
+
+    <span class="k">def</span> visit_FunctionDef(self, node):
+        self.functions.append({
+            <span class="s">"name"</span>:  node.name,
+            <span class="s">"lines"</span>: node.end_lineno - node.lineno,
+            <span class="s">"args"</span>:  len(node.args.args),
+        })
+        self.generic_visit(node)   <span class="c"># visita i figli</span>
+
+analyzer = FunctionAnalyzer()
+analyzer.visit(ast.parse(open(<span class="s">"file.py"</span>).read()))
+print(analyzer.functions)</pre>
+        </div>
+    </div>
+
+    <div class="content">
+        <h2>Metriche con radon</h2>
+        <p>Complessità ciclomatica, maintainability index, linee di codice — tutto scriptabile.</p>
+        <div class="code-block" id="cb-radon">
+            <button class="copy-btn" onclick="copyCode('cb-radon')">copy</button>
+            <pre><span class="c"># Da terminale</span>
+radon cc myfile.py -s -a    <span class="c"># complessità con media</span>
+radon mi myfile.py          <span class="c"># maintainability index</span>
+radon raw myfile.py         <span class="c"># LOC, SLOC, commenti</span>
+
+<span class="c"># Da Python</span>
+<span class="k">from</span> radon.complexity <span class="k">import</span> cc_visit
+
+results = cc_visit(open(<span class="s">"myfile.py"</span>).read())
+<span class="k">for</span> r <span class="k">in</span> results:
+    print(<span class="s">f"{r.name}: complessità {r.complexity} (rank {r.rank})"</span>)</pre>
+        </div>
+    </div>
+
+    <div class="content">
+        <h2>Bandit — sicurezza statica</h2>
+        <div class="code-block" id="cb-bandit">
+            <button class="copy-btn" onclick="copyCode('cb-bandit')">copy</button>
+            <pre>bandit myfile.py -f json -o report.json
+
+<span class="c"># Output esempio:</span>
+<span class="c"># B602 - subprocess call with shell=True (HIGH severity)</span>
+<span class="c"># B105 - hardcoded password string (MEDIUM severity)</span></pre>
+        </div>
+    </div>
+
+    <button class="complete-btn" id="btn-mod03" onclick="completeModule('mod03')">
+        ✓ Segna modulo come completato
+    </button>
+</section>
+
+<!-- ── MODULO 04 ───────────────────────────────────── -->
+<section class="section" id="section-mod04">
+    <div class="sec-head">
+        <div class="badge">Modulo 04</div>
+        <h1>Testing &amp; <span class="hl">Validazione</span></h1>
+        <p class="desc">pytest, mock, sandboxing del codice generato. Come verificare che il codice AI faccia quello che dichiara.</p>
+    </div>
+
+    <div class="content">
+        <h2>pytest — il NUnit di Python</h2>
+        <p>Niente classi obbligatorie, niente attributi. Funzioni che iniziano con <code>test_</code> — pytest le trova e le lancia da solo.</p>
+        <div class="vs">
+            <div class="vs-col csharp">
+                <div class="vs-lang">// C# — xUnit</div>
+                <pre>[Fact]
+<span class="k">public void</span> TestSomma() {
+    <span class="k">var</span> r = Somma(<span class="n">2</span>, <span class="n">3</span>);
+    Assert.Equal(<span class="n">5</span>, r);
+}</pre>
+            </div>
+            <div class="vs-col python">
+                <div class="vs-lang"># Python — pytest</div>
+                <pre><span class="k">def</span> test_somma():
+    r = somma(<span class="n">2</span>, <span class="n">3</span>)
+    <span class="k">assert</span> r == <span class="n">5</span>   <span class="c"># basta assert</span></pre>
+            </div>
+        </div>
+        <div class="code-block" id="cb-pytest">
+            <button class="copy-btn" onclick="copyCode('cb-pytest')">copy</button>
+            <pre>pytest               <span class="c"># tutti i test</span>
+pytest -v            <span class="c"># verboso</span>
+pytest test_foo.py   <span class="c"># file specifico</span>
+pytest -k "somma"    <span class="c"># filtra per nome</span></pre>
+        </div>
+    </div>
+
+    <div class="content">
+        <h2>Parametrize — test cases multipli</h2>
+        <p>Equivale a <code>[Theory]</code> + <code>[InlineData]</code> di xUnit.</p>
+        <div class="code-block" id="cb-param">
+            <button class="copy-btn" onclick="copyCode('cb-param')">copy</button>
+            <pre><span class="k">import</span> pytest
+
+@pytest.mark.parametrize(<span class="s">"a, b, atteso"</span>, [
+    (<span class="n">2</span>,  <span class="n">3</span>,  <span class="n">5</span>),
+    (<span class="n">0</span>,  <span class="n">0</span>,  <span class="n">0</span>),
+    (<span class="n">-1</span>, <span class="n">1</span>,  <span class="n">0</span>),
+])
+<span class="k">def</span> test_somma(a, b, atteso):
+    <span class="k">assert</span> somma(a, b) == atteso</pre>
+        </div>
+    </div>
+
+    <div class="content">
+        <h2>Mock — isolare dipendenze</h2>
+        <p>Simile a Moq in C#. Isola il codice testato dalle dipendenze esterne (DB, API, file system).</p>
+        <div class="code-block" id="cb-mock">
+            <button class="copy-btn" onclick="copyCode('cb-mock')">copy</button>
+            <pre><span class="k">from</span> unittest.mock <span class="k">import</span> patch, MagicMock
+
+<span class="k">def</span> test_fetch_user():
+    mock_resp = MagicMock()
+    mock_resp.json.return_value = {<span class="s">"id"</span>: <span class="n">1</span>, <span class="s">"nome"</span>: <span class="s">"Alice"</span>}
+
+    <span class="k">with</span> patch(<span class="s">"requests.get"</span>, return_value=mock_resp):
+        user = fetch_user(<span class="n">1</span>)
+        <span class="k">assert</span> user[<span class="s">"nome"</span>] == <span class="s">"Alice"</span></pre>
+        </div>
+    </div>
+
+    <button class="complete-btn" id="btn-mod04" onclick="completeModule('mod04')">
+        ✓ Segna modulo come completato
+    </button>
+</section>
+
+<!-- ── MODULO 05 ───────────────────────────────────── -->
+<section class="section" id="section-mod05">
+    <div class="sec-head">
+        <div class="badge">Modulo 05</div>
+        <h1>Automazione <span class="hl">Avanzata</span></h1>
+        <p class="desc">Pipeline completa di review automatica. Metti insieme AST, radon, bandit e pytest in un solo script.</p>
+    </div>
+
+    <div class="content">
+        <h2>Architettura della pipeline</h2>
+        <ul>
+            <li>Input: file <code>.py</code> generato da AI</li>
+            <li>Step 1: parse AST — struttura, funzioni, complessità</li>
+            <li>Step 2: radon — metriche di complessità ciclomatica</li>
+            <li>Step 3: bandit — vulnerabilità di sicurezza</li>
+            <li>Step 4: pylint — qualità e stile del codice</li>
+            <li>Output: report JSON con score, issues, suggerimenti</li>
+        </ul>
+    </div>
+
+    <div class="content">
+        <h2>Pipeline — struttura base</h2>
+        <div class="code-block" id="cb-pipeline">
+            <button class="copy-btn" onclick="copyCode('cb-pipeline')">copy</button>
+            <pre><span class="k">import</span> ast, subprocess, json
+<span class="k">from</span> dataclasses <span class="k">import</span> dataclass, field
+<span class="k">from</span> pathlib <span class="k">import</span> Path
+<span class="k">from</span> radon.complexity <span class="k">import</span> cc_visit
+
+@dataclass
+<span class="k">class</span> ReviewResult:
+    file:        str
+    funzioni:    list[dict] = field(default_factory=list)
+    complessita: float = <span class="n">0.0</span>
+    sicurezza:   list[dict] = field(default_factory=list)
+    lint_issues: list[str]  = field(default_factory=list)
+    score:       float = <span class="n">100.0</span>
+
+<span class="k">def</span> analizza(path: str) -> ReviewResult:
+    codice = Path(path).read_text(encoding=<span class="s">"utf-8"</span>)
+    result = ReviewResult(file=path)
+
+    <span class="c"># 1. AST</span>
+    tree = ast.parse(codice)
+    <span class="k">for</span> node <span class="k">in</span> ast.walk(tree):
+        <span class="k">if</span> isinstance(node, ast.FunctionDef):
+            result.funzioni.append({
+                <span class="s">"nome"</span>:  node.name,
+                <span class="s">"linee"</span>: node.end_lineno - node.lineno,
+            })
+
+    <span class="c"># 2. Complessità (radon)</span>
+    cc = cc_visit(codice)
+    <span class="k">if</span> cc:
+        result.complessita = sum(f.complexity <span class="k">for</span> f <span class="k">in</span> cc) / len(cc)
+
+    <span class="c"># 3. Sicurezza (bandit)</span>
+    out = subprocess.run(
+        [<span class="s">"bandit"</span>, path, <span class="s">"-f"</span>, <span class="s">"json"</span>],
+        capture_output=<span class="k">True</span>, text=<span class="k">True</span>
+    )
+    <span class="k">if</span> out.stdout:
+        data = json.loads(out.stdout)
+        result.sicurezza = data.get(<span class="s">"results"</span>, [])
+
+    <span class="c"># Penalizza score</span>
+    result.score -= len(result.sicurezza) * <span class="n">10</span>
+    result.score -= max(<span class="n">0</span>, result.complessita - <span class="n">5</span>) * <span class="n">5</span>
+    result.score = max(<span class="n">0</span>, result.score)
+
+    <span class="k">return</span> result
+
+<span class="k">if</span> __name__ == <span class="s">"__main__"</span>:
+    <span class="k">import</span> sys
+    r = analizza(sys.argv[<span class="n">1</span>])
+    print(json.dumps(r.__dict__, indent=<span class="n">2</span>, default=str))</pre>
+        </div>
+    </div>
+
+    <div class="callout">
+        <div class="callout-lbl">🎯 Obiettivo finale</div>
+        <p>Con questa pipeline puoi valutare qualsiasi blocco di codice Python generato da AI in pochi secondi. Il prossimo step è wrapparlo in un'interfaccia CLI o web API.</p>
+    </div>
+
+    <button class="complete-btn" id="btn-mod05" onclick="completeModule('mod05')">
+        ✓ Segna modulo come completato
+    </button>
+</section>
+
+<!-- ── ESERCIZI ────────────────────────────────────── -->
+<section class="section" id="section-ex">
+    <div class="sec-head">
+        <div class="badge">Esercizi</div>
+        <h1>Codice AI <span class="hl">Reale</span></h1>
+        <p class="desc">Analizza snippet reali generati da ChatGPT, Claude e Copilot. Trova i bug, le inefficienze, i pattern.</p>
+    </div>
+
+    <div class="row-header">
+        <h2>Esercizi disponibili</h2><div class="row-line"></div>
+    </div>
+
+    <div class="ex-card">
+        <div class="ex-num">EX-01</div>
+        <div class="ex-title">FastAPI CRUD — generato da ChatGPT</div>
+        <p class="ex-desc">Endpoint REST con SQLAlchemy. Trova almeno 3 problemi: N+1 query, mancanza di validazione input, gestione errori assente.</p>
+        <div class="ex-tags">
+            <span class="diff medium">medio</span>
+            <span class="tag">FastAPI</span>
+            <span class="tag">SQLAlchemy</span>
+            <span class="tag">AST</span>
+        </div>
+    </div>
+
+    <div class="ex-card">
+        <div class="ex-num">EX-02</div>
+        <div class="ex-title">Script data processing — generato da Claude</div>
+        <p class="ex-desc">Pandas + numpy per elaborare CSV. Trova: memory leak, tipo errato, edge case su DataFrame vuoto.</p>
+        <div class="ex-tags">
+            <span class="diff easy">facile</span>
+            <span class="tag">pandas</span>
+            <span class="tag">numpy</span>
+        </div>
+    </div>
+
+    <div class="ex-card">
+        <div class="ex-num">EX-03</div>
+        <div class="ex-title">Auth JWT — generato da Copilot</div>
+        <p class="ex-desc">Implementazione JWT completa. Trova le vulnerabilità (bandit), i path non testati, la complessità eccessiva.</p>
+        <div class="ex-tags">
+            <span class="diff hard">difficile</span>
+            <span class="tag">sicurezza</span>
+            <span class="tag">JWT</span>
+            <span class="tag">bandit</span>
+        </div>
+    </div>
+
+    <div class="ex-card">
+        <div class="ex-num">EX-04</div>
+        <div class="ex-title">Pipeline async — generato da Gemini</div>
+        <p class="ex-desc">Script asyncio con aiohttp. Trova: race condition, mancanza di timeout, exception swallowing.</p>
+        <div class="ex-tags">
+            <span class="diff hard">difficile</span>
+            <span class="tag">asyncio</span>
+            <span class="tag">aiohttp</span>
+            <span class="tag">concorrenza</span>
+        </div>
+    </div>
+
+    <button class="complete-btn" id="btn-ex" onclick="completeModule('ex')">
+        ✓ Segna esercizi come completati
+    </button>
+</section>
+
+
+<!-- ── BONUS: AGENTE AI CON AGNO ──────────────────── -->
+<section class="section" id="section-bonus">
+    <div class="sec-head">
+        <div class="badge">Bonus</div>
+        <h1>Crea il tuo <span class="hl">Agente AI</span></h1>
+        <p class="desc">Con AGNO framework in Python. Solo per capire — niente produzione, niente architetture complesse.</p>
+    </div>
+
+    <div class="content">
+        <h2>Cos'è un agente AI</h2>
+        <p>Un agente non è una semplice chiamata a un LLM. È un programma che:</p>
+        <ul>
+            <li>Riceve un obiettivo in linguaggio naturale</li>
+            <li><strong>Decide autonomamente</strong> quali strumenti usare per raggiungerlo</li>
+            <li>Esegue azioni (web search, calcoli, lettura file…)</li>
+            <li>Ragiona sul risultato e itera finché ha la risposta</li>
+        </ul>
+        <div class="vs" style="grid-template-columns:1fr;">
+            <div class="vs-col single">
+                <div class="vs-lang">Differenza concettuale</div>
+                <pre><span class="c"># NON è un agente — risposta fissa dal modello</span>
+response = claude.messages.create(prompt=<span class="s">"Che tempo fa a Milano?"</span>)
+
+<span class="c"># È un agente — decide di chiamare un tool meteo</span>
+agent.run(<span class="s">"Che tempo fa a Milano?"</span>)
+<span class="c"># → sceglie WeatherTool → chiama API → risponde con dati reali</span></pre>
+            </div>
+        </div>
+    </div>
+
+    <div class="content">
+        <h2>AGNO framework</h2>
+        <p>AGNO è un framework Python per costruire agenti, team di agenti e workflow. Supporta OpenAI, Anthropic (Claude), Google e modelli locali. È la cosa più vicina a un "runtime per agenti" disponibile oggi.</p>
+        <div class="callout">
+            <div class="callout-lbl">📦 Installazione</div>
+            <p>Una sola riga, poi configura la tua API key.</p>
+        </div>
+        <div class="code-block" id="cb-agno-install">
+            <button class="copy-btn" onclick="copyCode('cb-agno-install')">copy</button>
+            <pre>pip install agno
+
+<span class="c"># API key Anthropic (o OpenAI se preferisci)</span>
+<span class="c"># Windows PowerShell:</span>
+$env:ANTHROPIC_API_KEY = "sk-ant-..."
+
+<span class="c"># oppure crea un file .env nel progetto:</span>
+<span class="c"># ANTHROPIC_API_KEY=sk-ant-...</span></pre>
+        </div>
+    </div>
+
+    <div class="content">
+        <h2>Agente base — minimo indispensabile</h2>
+        <p>Tre righe per un agente funzionante con Claude. Fonte: <span style="color:var(--accent)">docs.agno.com</span></p>
+        <div class="code-block" id="cb-agno-basic">
+            <button class="copy-btn" onclick="copyCode('cb-agno-basic')">copy</button>
+            <pre><span class="k">from</span> agno.agent <span class="k">import</span> Agent
+<span class="k">from</span> agno.models.anthropic <span class="k">import</span> Claude
+
+<span class="c"># Crea l'agente</span>
+agent = Agent(
+    model=Claude(id=<span class="s">"claude-sonnet-4-5-20250929"</span>),
+    markdown=<span class="k">True</span>,
+)
+
+<span class="c"># Esegui — stampa la risposta nel terminale</span>
+agent.print_response(<span class="s">"Spiega il duck typing Python in 3 punti"</span>)
+
+<span class="c"># Con streaming (come ChatGPT — carattere per carattere)</span>
+agent.print_response(<span class="s">"Spiega il duck typing Python in 3 punti"</span>, stream=<span class="k">True</span>)</pre>
+        </div>
+    </div>
+
+    <div class="content">
+        <h2>Agente con istruzioni — personalizza il comportamento</h2>
+        <p>Le istruzioni definiscono il "carattere" dell'agente. Equivale al system prompt, ma strutturato.</p>
+        <div class="code-block" id="cb-agno-instructions">
+            <button class="copy-btn" onclick="copyCode('cb-agno-instructions')">copy</button>
+            <pre><span class="k">from</span> agno.agent <span class="k">import</span> Agent
+<span class="k">from</span> agno.models.anthropic <span class="k">import</span> Claude
+
+instructions = <span class="s">"""\
+Sei un assistente per sviluppatori .NET che imparano Python.
+Quando spieghi concetti Python, fai SEMPRE un paragone con C#.
+Rispondi in italiano. Sii conciso — max 5 righe per risposta.\
+"""</span>
+
+agent = Agent(
+    model=Claude(id=<span class="s">"claude-sonnet-4-5-20250929"</span>),
+    instructions=instructions,
+    markdown=<span class="k">True</span>,
+)
+
+agent.print_response(<span class="s">"Come funzionano i decoratori in Python?"</span>, stream=<span class="k">True</span>)</pre>
+        </div>
+    </div>
+
+    <div class="content">
+        <h2>Agente con tool — l'agente fa cose reali</h2>
+        <p>Aggiungi tool e l'agente decide <em>da solo</em> quando e come usarli. Questo è il salto concettuale chiave.</p>
+        <div class="code-block" id="cb-agno-tools">
+            <button class="copy-btn" onclick="copyCode('cb-agno-tools')">copy</button>
+            <pre><span class="k">from</span> agno.agent <span class="k">import</span> Agent
+<span class="k">from</span> agno.models.anthropic <span class="k">import</span> Claude
+<span class="k">from</span> agno.tools.duckduckgo <span class="k">import</span> DuckDuckGoTools
+
+<span class="c"># Installa il tool: pip install duckduckgo-search</span>
+
+agent = Agent(
+    model=Claude(id=<span class="s">"claude-sonnet-4-5-20250929"</span>),
+    tools=[DuckDuckGoTools()],    <span class="c"># ← agente può cercare su web</span>
+    show_tool_calls=<span class="k">True</span>,         <span class="c"># ← mostra cosa chiama</span>
+    markdown=<span class="k">True</span>,
+)
+
+<span class="c"># L'agente DECIDE di usare DuckDuckGo per rispondere</span>
+agent.print_response(
+    <span class="s">"Quali sono le novità di Python 3.13?"</span>,
+    stream=<span class="k">True</span>
+)</pre>
+        </div>
+        <div class="callout">
+            <div class="callout-lbl">🧠 Cosa succede internamente</div>
+            <p>
+                1. LLM riceve la domanda<br>
+                2. Decide: "ho bisogno di info aggiornate → uso DuckDuckGo"<br>
+                3. Chiama il tool → ottiene risultati<br>
+                4. Elabora i risultati → risponde<br>
+                Tutto automatico. Tu hai solo scritto <code>tools=[DuckDuckGoTools()]</code>.
+            </p>
+        </div>
+    </div>
+
+    <div class="content">
+        <h2>Tool personalizzato — funzioni Python qualsiasi</h2>
+        <p>Qualsiasi funzione Python diventa un tool. AGNO usa il docstring e i type hint per spiegare al LLM quando usarla.</p>
+        <div class="code-block" id="cb-agno-custom-tool">
+            <button class="copy-btn" onclick="copyCode('cb-agno-custom-tool')">copy</button>
+            <pre><span class="k">from</span> agno.agent <span class="k">import</span> Agent
+<span class="k">from</span> agno.models.anthropic <span class="k">import</span> Claude
+<span class="k">import</span> ast
+
+<span class="k">def</span> analizza_python(codice: str) -> dict:
+    <span class="s">"""
+    Analizza codice Python e restituisce
+    il numero di funzioni e classi trovate.
+    Usala quando l'utente chiede di analizzare codice.
+    """</span>
+    tree = ast.parse(codice)
+    funzioni = sum(<span class="n">1</span> <span class="k">for</span> n <span class="k">in</span> ast.walk(tree) <span class="k">if</span> isinstance(n, ast.FunctionDef))
+    classi   = sum(<span class="n">1</span> <span class="k">for</span> n <span class="k">in</span> ast.walk(tree) <span class="k">if</span> isinstance(n, ast.ClassDef))
+    <span class="k">return</span> {<span class="s">"funzioni"</span>: funzioni, <span class="s">"classi"</span>: classi}
+
+agent = Agent(
+    model=Claude(id=<span class="s">"claude-sonnet-4-5-20250929"</span>),
+    tools=[analizza_python],   <span class="c"># ← funzione diretta, niente wrapper</span>
+    show_tool_calls=<span class="k">True</span>,
+    markdown=<span class="k">True</span>,
+)
+
+codice_da_analizzare = <span class="s">"""
+class Utente:
+    def __init__(self, nome): self.nome = nome
+    def saluta(self): return f"Ciao {self.nome}"
+"""</span>
+
+agent.print_response(
+    <span class="s">f"Analizza questo codice:\n{codice_da_analizzare}"</span>,
+    stream=<span class="k">True</span>
+)</pre>
+        </div>
+        <div class="callout">
+            <div class="callout-lbl">💡 Connessione con il corso</div>
+            <p>Il tool <code>analizza_python</code> usa esattamente il modulo <code>ast</code> del Modulo 03. Hai già tutto quello che serve per costruire un agente che fa review automatica di codice AI.</p>
+        </div>
+    </div>
+
+    <div class="content">
+        <h2>Concetti chiave — mappa mentale</h2>
+        <div class="vs" style="grid-template-columns:1fr;">
+            <div class="vs-col single">
+                <div class="vs-lang">Architettura di un agente AGNO</div>
+                <pre><span class="k">Agent</span>(
+    model=<span class="k">Claude</span>(...)        <span class="c"># il "cervello" — LLM che ragiona</span>
+    instructions=<span class="s">"..."</span>     <span class="c"># comportamento e personalità</span>
+    tools=[<span class="k">...</span>]            <span class="c"># azioni che può eseguire</span>
+    knowledge=<span class="k">...</span>          <span class="c"># documenti/DB da cui attingere</span>
+    memory=<span class="k">...</span>             <span class="c"># memoria tra sessioni diverse</span>
+    storage=<span class="k">...</span>            <span class="c"># dove salvare lo stato</span>
+)</pre>
+            </div>
+        </div>
+        <p style="margin-top:16px">Per questo corso bastano <code>model</code>, <code>instructions</code> e <code>tools</code>. Il resto è per produzione.</p>
+    </div>
+
+    <div class="content">
+        <h2>Cosa costruire come esercizio</h2>
+        <ul>
+            <li>Agente che riceve un file <code>.py</code> e fa review automatica (usa AST + bandit come tool)</li>
+            <li>Agente che spiega codice AI in termini C# / .NET</li>
+            <li>Agente che confronta due snippet e dice quale è più Pythonic</li>
+        </ul>
+    </div>
+
+    <button class="complete-btn" id="btn-bonus" onclick="completeModule('bonus')">
+        ✓ Segna bonus come completato
+    </button>
+</section>
+
+</main>
+</div><!-- /.layout -->
+
+<!-- ═══════════════════ SCRIPT ══════════════════════ -->
+<script>
+// ─── DB locale: localStorage ─────────────────────────────────────
+const DB_KEY = 'corsoPython_v1';
+const MODULES = ['setup','mod01','mod02','mod03','mod04','mod05','ex','bonus'];
+const SETUP_STEPS = ['st-1','st-2','st-3','st-4','st-5','st-6','st-7','st-8'];
+
+function dbLoad() {
+    try { return JSON.parse(localStorage.getItem(DB_KEY) || '{}'); }
+    catch { return {}; }
+}
+function dbSave(data) {
+    localStorage.setItem(DB_KEY, JSON.stringify(data));
+}
+
+let db = dbLoad();
+
+// ─── Navigazione ─────────────────────────────────────────────────
+function go(id) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+    const sec = document.getElementById('section-' + id);
+    if (sec) sec.classList.add('active');
+
+    const nav = document.getElementById('nav-' + id);
+    if (nav) nav.classList.add('active');
+
+    window.scrollTo(0, 0);
+}
+
+// ─── Completamento modulo ─────────────────────────────────────────
+function completeModule(id) {
+    db['module_' + id] = true;
+    dbSave(db);
+    refreshUI();
+}
+
+// ─── Setup steps ─────────────────────────────────────────────────
+function toggleStep(stepId) {
+    const el = document.getElementById(stepId);
+    const newState = !el.classList.contains('done');
+    el.classList.toggle('done', newState);
+
+    if (!db.steps) db.steps = {};
+    db.steps[stepId] = newState;
+    dbSave(db);
+    refreshSetupBar();
+}
+
+function toggleExpand(stepId) {
+    document.getElementById(stepId).classList.toggle('open');
+}
+
+function refreshSetupBar() {
+    const steps = db.steps || {};
+    const done = SETUP_STEPS.filter(s => steps[s]).length;
+    const pct  = Math.round(done / SETUP_STEPS.length * 100);
+    const fill = document.getElementById('setupFill');
+    const lbl  = document.getElementById('setupLbl');
+    if (fill) fill.style.width = pct + '%';
+    if (lbl)  lbl.textContent  = done + ' / ' + SETUP_STEPS.length;
+}
+
+// ─── UI globale ───────────────────────────────────────────────────
+function refreshUI() {
+    const completed = MODULES.filter(m => db['module_' + m]).length;
+    const pct = Math.round(completed / MODULES.length * 100);
+
+    // Sidebar progress
+    const fill  = document.getElementById('globalFill');
+    const count = document.getElementById('globalCount');
+    if (fill)  fill.style.width = pct + '%';
+    if (count) count.textContent = completed + ' / ' + MODULES.length + ' completati';
+
+    // Migration meter
+    const thumb = document.getElementById('meterThumb');
+    if (thumb) thumb.style.left = pct + '%';
+
+    // Nav + cards + buttons
+    MODULES.forEach(m => {
+        const done = !!db['module_' + m];
+        const nav  = document.getElementById('nav-' + m);
+        const card = document.getElementById('card-' + m);
+        const btn  = document.getElementById('btn-' + m);
+        if (nav)  nav.classList.toggle('completed', done);
+        if (card) card.classList.toggle('completed', done);
+        if (btn && done) {
+            btn.textContent = '✓ Completato';
+            btn.classList.add('done');
+        }
+    });
+}
+
+// ─── Copia codice ─────────────────────────────────────────────────
+function copyCode(blockId) {
+    const block = document.getElementById(blockId);
+    if (!block) return;
+    const pre = block.querySelector('pre');
+    const text = pre ? pre.innerText.trim() : block.innerText.trim();
+    navigator.clipboard.writeText(text).then(() => {
+        const btn = block.querySelector('.copy-btn');
+        if (!btn) return;
+        btn.textContent = 'copied';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
+    }).catch(() => {});
+}
+
+// ─── Reset progresso ─────────────────────────────────────────────
+function resetProgress() {
+    if (!confirm('Sei sicuro di voler azzerare tutto il progresso?')) return;
+    localStorage.removeItem(DB_KEY);
+    db = {};
+    // Reset step visuals
+    SETUP_STEPS.forEach(s => {
+        const el = document.getElementById(s);
+        if (el) el.classList.remove('done');
+    });
+    refreshUI();
+    refreshSetupBar();
+}
+
+// ─── Scorciatoie tastiera ─────────────────────────────────────────
+document.addEventListener('keydown', e => {
+    if (['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) return;
+    const map = {'0':'home','s':'setup','1':'mod01','2':'mod02','3':'mod03','4':'mod04','5':'mod05','e':'ex','b':'bonus'};
+    if (map[e.key]) { go(map[e.key]); return; }
+    if (e.key === 'r') resetProgress();
+});
+
+// ─── Toggle percorso completo ─────────────────────────────────────
+function toggleModules() {
+    const cards  = document.getElementById('modCards');
+    const toggle = document.getElementById('modulesToggle');
+    const open   = !cards.classList.contains('collapsed');
+    cards.classList.toggle('collapsed', open);
+    toggle.textContent = open ? '▸ apri' : '▾ chiudi';
+    db.modulesCollapsed = open;
+    dbSave(db);
+}
+
+// ─── Init ─────────────────────────────────────────────────────────
+(function init() {
+    // Ripristina stato steps
+    const steps = db.steps || {};
+    SETUP_STEPS.forEach(s => {
+        if (steps[s]) {
+            const el = document.getElementById(s);
+            if (el) el.classList.add('done');
+        }
+    });
+    refreshUI();
+    refreshSetupBar();
+
+    // Ripristina stato collapse percorso
+    if (db.modulesCollapsed) {
+        const cards  = document.getElementById('modCards');
+        const toggle = document.getElementById('modulesToggle');
+        if (cards)  cards.classList.add('collapsed');
+        if (toggle) toggle.textContent = '▸ apri';
+    }
+})();
+</script>
+</body>
+</html>
