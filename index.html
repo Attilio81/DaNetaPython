@@ -258,8 +258,7 @@
         }
         .row-line { flex: 1; height: 1px; background: var(--border); }
 
-        .mod-cards { display: grid; gap: 1px; overflow: hidden; transition: max-height .35s ease, opacity .3s ease; max-height: 2000px; opacity: 1; }
-        .mod-cards.collapsed { max-height: 0; opacity: 0; }
+        .mod-cards { display: grid; gap: 1px; }
         .mod-card {
             background: var(--surface);
             border: 1px solid var(--border);
@@ -591,12 +590,11 @@
 <!-- ── HOME ───────────────────────────────────────── -->
 <section class="section active" id="section-home">
     <div class="modules-grid" style="margin-top:0;padding-top:0;border-top:none">
-        <div class="row-header" onclick="toggleModules()" style="cursor:pointer">
+        <div class="row-header">
             <h2>Percorso completo</h2>
             <div class="row-line"></div>
-            <span id="modulesToggle" style="font-size:11px;color:var(--dim);white-space:nowrap;margin-left:12px">▾ chiudi</span>
         </div>
-        <div class="mod-cards" id="modCards">
+        <div class="mod-cards">
             <div class="mod-card" id="card-setup" onclick="go('setup')">
                 <div class="mod-n">00</div>
                 <div>
@@ -1282,96 +1280,116 @@ settings = Settings()  <span class="c"># legge .env automaticamente</span></pre>
         <h1>Leggere <span class="hl">codice AI</span></h1>
         <p class="desc">Duck typing, decoratori, generators, async/await. I costrutti che l'AI usa costantemente e che sembrano magia.</p>
     </div>
+    <div class="steps" style="max-width:680px">
 
-    <div class="content">
-        <h2>Duck Typing</h2>
-        <p>Python non controlla il tipo — controlla il comportamento. Se un oggetto ha il metodo cercato, funziona. Niente interfacce, niente cast espliciti.</p>
-        <div class="code-block" id="cb-duck">
-            <button class="copy-btn" onclick="copyCode('cb-duck')">copy</button>
-            <pre><span class="c"># Qualunque oggetto con .read() funziona — non importa il tipo</span>
+        <div class="step" id="m02-1">
+            <div class="step-hd">
+                <div class="checkbox" onclick="toggleStep('m02-1')">✓</div>
+                <span class="step-title">Duck Typing</span>
+                <button class="step-toggle" onclick="toggleExpand('m02-1')">▾</button>
+            </div>
+            <div class="step-body">
+                <p>Python non controlla il tipo — controlla il comportamento. Se un oggetto ha il metodo cercato, funziona. Niente interfacce, niente cast espliciti.</p>
+                <div class="code-block" id="cb-duck">
+                    <button class="copy-btn" onclick="copyCode('cb-duck')">copy</button>
+                    <pre><span class="c"># Qualunque oggetto con .read() funziona</span>
 <span class="k">def</span> processa(sorgente):
     contenuto = sorgente.read()
     <span class="k">return</span> contenuto.strip().upper()
 
-<span class="c"># Tutti e tre funzionano:</span>
-processa(open(<span class="s">"file.txt"</span>))           <span class="c"># file reale</span>
-processa(io.StringIO(<span class="s">"testo"</span>))       <span class="c"># stringa in memoria</span>
-processa(requests.get(url).raw)      <span class="c"># stream HTTP</span>
-
-<span class="c"># In C# dovresti dichiarare IReadable o simile</span>
+processa(open(<span class="s">"file.txt"</span>))         <span class="c"># file reale</span>
+processa(io.StringIO(<span class="s">"testo"</span>))     <span class="c"># stringa in memoria</span>
+processa(requests.get(url).raw)    <span class="c"># stream HTTP</span>
 <span class="c"># In Python: se ha .read(), funziona. Punto.</span></pre>
+                </div>
+                <div class="callout">
+                    <div class="callout-lbl">📖 Da .NET developer</div>
+                    <p>Il duck typing sostituisce le interfacce. Puoi passare mock, stub, oggetti custom senza implementare interfacce.</p>
+                </div>
+            </div>
         </div>
-        <div class="callout">
-            <div class="callout-lbl">📖 Da .NET developer</div>
-            <p>Il duck typing sostituisce le interfacce. All'inizio fa paura. Poi diventa un superpotere: puoi passare mock, stub, oggetti custom senza dover implementare interfacce.</p>
-        </div>
-    </div>
 
-    <div class="content">
-        <h2>Decoratori</h2>
-        <p>Funzioni che wrappano altre funzioni. L'AI li usa costantemente per routing, auth, caching, retry. Concettualmente simili agli Attribute di C# ma molto più potenti.</p>
-        <div class="vs">
-            <div class="vs-col csharp">
-                <div class="vs-lang">// C# — Attribute</div>
-                <pre>[HttpGet(<span class="s">"/users"</span>)]
+        <div class="step" id="m02-2">
+            <div class="step-hd">
+                <div class="checkbox" onclick="toggleStep('m02-2')">✓</div>
+                <span class="step-title">Decoratori</span>
+                <button class="step-toggle" onclick="toggleExpand('m02-2')">▾</button>
+            </div>
+            <div class="step-body">
+                <p>Funzioni che wrappano altre funzioni. L'AI li usa per routing, auth, caching, retry. Simili agli Attribute di C# ma più potenti.</p>
+                <div class="vs">
+                    <div class="vs-col csharp">
+                        <div class="vs-lang">// C# — Attribute</div>
+                        <pre>[HttpGet(<span class="s">"/users"</span>)]
 [Authorize]
 <span class="k">public</span> IActionResult GetUsers()
 {
     <span class="k">return</span> Ok(users);
 }</pre>
-            </div>
-            <div class="vs-col python">
-                <div class="vs-lang"># Python — Decoratore</div>
-                <pre>@app.get(<span class="s">"/users"</span>)
+                    </div>
+                    <div class="vs-col python">
+                        <div class="vs-lang"># Python — Decoratore</div>
+                        <pre>@app.get(<span class="s">"/users"</span>)
 @require_auth
 <span class="k">async def</span> get_users():
     <span class="k">return</span> users
 
 <span class="c"># stessa semantica, più composabile</span></pre>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="content">
-        <h2>Generators</h2>
-        <p>Producono valori in modo lazy, uno alla volta. Equivale a <code>IEnumerable&lt;T&gt;</code> con <code>yield return</code> in C#. Usa <code>yield</code> invece di costruire una lista.</p>
-        <div class="code-block" id="cb-gen">
-            <button class="copy-btn" onclick="copyCode('cb-gen')">copy</button>
-            <pre><span class="c"># Generator — lazy, nessuna lista in memoria</span>
+        <div class="step" id="m02-3">
+            <div class="step-hd">
+                <div class="checkbox" onclick="toggleStep('m02-3')">✓</div>
+                <span class="step-title">Generators</span>
+                <button class="step-toggle" onclick="toggleExpand('m02-3')">▾</button>
+            </div>
+            <div class="step-body">
+                <p>Producono valori lazy, uno alla volta. Equivale a <code>IEnumerable&lt;T&gt;</code> con <code>yield return</code> in C#.</p>
+                <div class="code-block" id="cb-gen">
+                    <button class="copy-btn" onclick="copyCode('cb-gen')">copy</button>
+                    <pre><span class="c"># lazy — nessuna lista in memoria</span>
 <span class="k">def</span> leggi_righe(file_path: str):
     <span class="k">with</span> open(file_path) <span class="k">as</span> f:
         <span class="k">for</span> riga <span class="k">in</span> f:
             <span class="k">yield</span> riga.strip()
 
-<span class="c"># Consuma solo quando serve</span>
 <span class="k">for</span> riga <span class="k">in</span> leggi_righe(<span class="s">"big_file.txt"</span>):
     processa(riga)</pre>
+                </div>
+            </div>
         </div>
-    </div>
 
-    <div class="content">
-        <h2>async/await</h2>
-        <p>Quasi identico a C#. Stessa semantica: non blocca il thread, permette concorrenza. Differenza: in Python serve un event loop esplicito (asyncio o framework come FastAPI).</p>
-        <div class="vs">
-            <div class="vs-col csharp">
-                <div class="vs-lang">// C#</div>
-                <pre><span class="k">public async</span> Task&lt;<span class="k">string</span>&gt; FetchData()
+        <div class="step" id="m02-4">
+            <div class="step-hd">
+                <div class="checkbox" onclick="toggleStep('m02-4')">✓</div>
+                <span class="step-title">async/await</span>
+                <button class="step-toggle" onclick="toggleExpand('m02-4')">▾</button>
+            </div>
+            <div class="step-body">
+                <p>Quasi identico a C#. Differenza: serve un event loop esplicito (asyncio o framework come FastAPI).</p>
+                <div class="vs">
+                    <div class="vs-col csharp">
+                        <div class="vs-lang">// C#</div>
+                        <pre><span class="k">public async</span> Task&lt;<span class="k">string</span>&gt; FetchData()
 {
     <span class="k">var</span> resp = <span class="k">await</span> http.GetAsync(url);
     <span class="k">return await</span> resp.Content.ReadAsStringAsync();
 }</pre>
-            </div>
-            <div class="vs-col python">
-                <div class="vs-lang"># Python</div>
-                <pre><span class="k">async def</span> fetch_data() -> str:
+                    </div>
+                    <div class="vs-col python">
+                        <div class="vs-lang"># Python</div>
+                        <pre><span class="k">async def</span> fetch_data() -> str:
     <span class="k">async with</span> session.get(url) <span class="k">as</span> resp:
-        <span class="k">return await</span> resp.text()
-
-<span class="c"># stessa idea, leggermente diverso</span></pre>
+        <span class="k">return await</span> resp.text()</pre>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
 
+    </div>
     <button class="complete-btn" id="btn-mod02" onclick="completeModule('mod02')">
         ✓ Segna modulo come completato
     </button>
@@ -1384,13 +1402,19 @@ processa(requests.get(url).raw)      <span class="c"># stream HTTP</span>
         <h1>Analisi <span class="hl">Statica</span></h1>
         <p class="desc">AST, metriche, linting programmatico. Come un compilatore legge il codice — built-in, zero dipendenze.</p>
     </div>
+    <div class="steps" style="max-width:680px">
 
-    <div class="content">
-        <h2>Abstract Syntax Tree</h2>
-        <p>Python espone il suo AST come libreria standard. Puoi leggere, visitare e trasformare qualsiasi file Python. Analogo a Roslyn in C# — ma incluso nella stdlib.</p>
-        <div class="code-block" id="cb-ast">
-            <button class="copy-btn" onclick="copyCode('cb-ast')">copy</button>
-            <pre><span class="k">import</span> ast
+        <div class="step" id="m03-1">
+            <div class="step-hd">
+                <div class="checkbox" onclick="toggleStep('m03-1')">✓</div>
+                <span class="step-title">Abstract Syntax Tree</span>
+                <button class="step-toggle" onclick="toggleExpand('m03-1')">▾</button>
+            </div>
+            <div class="step-body">
+                <p>Python espone il suo AST come libreria standard. Analogo a Roslyn in C# — ma incluso nella stdlib, zero dipendenze.</p>
+                <div class="code-block" id="cb-ast">
+                    <button class="copy-btn" onclick="copyCode('cb-ast')">copy</button>
+                    <pre><span class="k">import</span> ast
 
 codice = <span class="s">"""
 def somma(a: int, b: int) -> int:
@@ -1404,21 +1428,27 @@ tree = ast.parse(codice)
         args = [a.arg <span class="k">for</span> a <span class="k">in</span> node.args.args]
         print(<span class="s">f"Funzione: {node.name}({', '.join(args)})"</span>)
         print(<span class="s">f"Linea:    {node.lineno}"</span>)</pre>
+                </div>
+                <div class="callout">
+                    <div class="callout-lbl">💡 Mapping concettuale</div>
+                    <p><code>ast.parse()</code> → <code>CSharpSyntaxTree.ParseText()</code><br>
+                    <code>ast.walk()</code> → visitor pattern di Roslyn<br>
+                    <code>ast.FunctionDef</code> → <code>MethodDeclarationSyntax</code></p>
+                </div>
+            </div>
         </div>
-        <div class="callout">
-            <div class="callout-lbl">💡 Mapping concettuale</div>
-            <p><code>ast.parse()</code> → <code>CSharpSyntaxTree.ParseText()</code><br>
-            <code>ast.walk()</code> → visitor pattern di Roslyn<br>
-            <code>ast.FunctionDef</code> → <code>MethodDeclarationSyntax</code></p>
-        </div>
-    </div>
 
-    <div class="content">
-        <h2>Visitor pattern con NodeVisitor</h2>
-        <p>Per analisi strutturate usa <code>ast.NodeVisitor</code> — più pulito di <code>ast.walk()</code> per casi complessi.</p>
-        <div class="code-block" id="cb-visitor">
-            <button class="copy-btn" onclick="copyCode('cb-visitor')">copy</button>
-            <pre><span class="k">class</span> FunctionAnalyzer(ast.NodeVisitor):
+        <div class="step" id="m03-2">
+            <div class="step-hd">
+                <div class="checkbox" onclick="toggleStep('m03-2')">✓</div>
+                <span class="step-title">Visitor pattern con NodeVisitor</span>
+                <button class="step-toggle" onclick="toggleExpand('m03-2')">▾</button>
+            </div>
+            <div class="step-body">
+                <p>Per analisi strutturate usa <code>ast.NodeVisitor</code> — più pulito di <code>ast.walk()</code> per casi complessi.</p>
+                <div class="code-block" id="cb-visitor">
+                    <button class="copy-btn" onclick="copyCode('cb-visitor')">copy</button>
+                    <pre><span class="k">class</span> FunctionAnalyzer(ast.NodeVisitor):
     <span class="k">def</span> __init__(self):
         self.functions = []
 
@@ -1428,45 +1458,55 @@ tree = ast.parse(codice)
             <span class="s">"lines"</span>: node.end_lineno - node.lineno,
             <span class="s">"args"</span>:  len(node.args.args),
         })
-        self.generic_visit(node)   <span class="c"># visita i figli</span>
+        self.generic_visit(node)  <span class="c"># visita i figli</span>
 
 analyzer = FunctionAnalyzer()
 analyzer.visit(ast.parse(open(<span class="s">"file.py"</span>).read()))
 print(analyzer.functions)</pre>
+                </div>
+            </div>
         </div>
-    </div>
 
-    <div class="content">
-        <h2>Metriche con radon</h2>
-        <p>Complessità ciclomatica, maintainability index, linee di codice — tutto scriptabile.</p>
-        <div class="code-block" id="cb-radon">
-            <button class="copy-btn" onclick="copyCode('cb-radon')">copy</button>
-            <pre><span class="c"># Da terminale</span>
-radon cc myfile.py -s -a    <span class="c"># complessità con media</span>
+        <div class="step" id="m03-3">
+            <div class="step-hd">
+                <div class="checkbox" onclick="toggleStep('m03-3')">✓</div>
+                <span class="step-title">Metriche con radon</span>
+                <button class="step-toggle" onclick="toggleExpand('m03-3')">▾</button>
+            </div>
+            <div class="step-body">
+                <p>Complessità ciclomatica, maintainability index, LOC — tutto scriptabile.</p>
+                <div class="code-block" id="cb-radon">
+                    <button class="copy-btn" onclick="copyCode('cb-radon')">copy</button>
+                    <pre>radon cc myfile.py -s -a    <span class="c"># complessità con media</span>
 radon mi myfile.py          <span class="c"># maintainability index</span>
 radon raw myfile.py         <span class="c"># LOC, SLOC, commenti</span>
 
-<span class="c"># Da Python</span>
 <span class="k">from</span> radon.complexity <span class="k">import</span> cc_visit
-
 results = cc_visit(open(<span class="s">"myfile.py"</span>).read())
 <span class="k">for</span> r <span class="k">in</span> results:
     print(<span class="s">f"{r.name}: complessità {r.complexity} (rank {r.rank})"</span>)</pre>
+                </div>
+            </div>
         </div>
-    </div>
 
-    <div class="content">
-        <h2>Bandit — sicurezza statica</h2>
-        <div class="code-block" id="cb-bandit">
-            <button class="copy-btn" onclick="copyCode('cb-bandit')">copy</button>
-            <pre>bandit myfile.py -f json -o report.json
+        <div class="step" id="m03-4">
+            <div class="step-hd">
+                <div class="checkbox" onclick="toggleStep('m03-4')">✓</div>
+                <span class="step-title">Bandit — sicurezza statica</span>
+                <button class="step-toggle" onclick="toggleExpand('m03-4')">▾</button>
+            </div>
+            <div class="step-body">
+                <div class="code-block" id="cb-bandit">
+                    <button class="copy-btn" onclick="copyCode('cb-bandit')">copy</button>
+                    <pre>bandit myfile.py -f json -o report.json
 
-<span class="c"># Output esempio:</span>
-<span class="c"># B602 - subprocess call with shell=True (HIGH severity)</span>
-<span class="c"># B105 - hardcoded password string (MEDIUM severity)</span></pre>
+<span class="c"># B602 - subprocess call with shell=True (HIGH)</span>
+<span class="c"># B105 - hardcoded password string (MEDIUM)</span></pre>
+                </div>
+            </div>
         </div>
-    </div>
 
+    </div>
     <button class="complete-btn" id="btn-mod03" onclick="completeModule('mod03')">
         ✓ Segna modulo come completato
     </button>
@@ -1479,41 +1519,53 @@ results = cc_visit(open(<span class="s">"myfile.py"</span>).read())
         <h1>Testing &amp; <span class="hl">Validazione</span></h1>
         <p class="desc">pytest, mock, sandboxing del codice generato. Come verificare che il codice AI faccia quello che dichiara.</p>
     </div>
+    <div class="steps" style="max-width:680px">
 
-    <div class="content">
-        <h2>pytest — il NUnit di Python</h2>
-        <p>Niente classi obbligatorie, niente attributi. Funzioni che iniziano con <code>test_</code> — pytest le trova e le lancia da solo.</p>
-        <div class="vs">
-            <div class="vs-col csharp">
-                <div class="vs-lang">// C# — xUnit</div>
-                <pre>[Fact]
+        <div class="step" id="m04-1">
+            <div class="step-hd">
+                <div class="checkbox" onclick="toggleStep('m04-1')">✓</div>
+                <span class="step-title">pytest — il NUnit di Python</span>
+                <button class="step-toggle" onclick="toggleExpand('m04-1')">▾</button>
+            </div>
+            <div class="step-body">
+                <p>Niente classi obbligatorie, niente attributi. Funzioni che iniziano con <code>test_</code> — pytest le trova e le lancia da solo.</p>
+                <div class="vs">
+                    <div class="vs-col csharp">
+                        <div class="vs-lang">// C# — xUnit</div>
+                        <pre>[Fact]
 <span class="k">public void</span> TestSomma() {
     <span class="k">var</span> r = Somma(<span class="n">2</span>, <span class="n">3</span>);
     Assert.Equal(<span class="n">5</span>, r);
 }</pre>
-            </div>
-            <div class="vs-col python">
-                <div class="vs-lang"># Python — pytest</div>
-                <pre><span class="k">def</span> test_somma():
+                    </div>
+                    <div class="vs-col python">
+                        <div class="vs-lang"># Python — pytest</div>
+                        <pre><span class="k">def</span> test_somma():
     r = somma(<span class="n">2</span>, <span class="n">3</span>)
     <span class="k">assert</span> r == <span class="n">5</span>   <span class="c"># basta assert</span></pre>
-            </div>
-        </div>
-        <div class="code-block" id="cb-pytest">
-            <button class="copy-btn" onclick="copyCode('cb-pytest')">copy</button>
-            <pre>pytest               <span class="c"># tutti i test</span>
+                    </div>
+                </div>
+                <div class="code-block" id="cb-pytest">
+                    <button class="copy-btn" onclick="copyCode('cb-pytest')">copy</button>
+                    <pre>pytest               <span class="c"># tutti i test</span>
 pytest -v            <span class="c"># verboso</span>
 pytest test_foo.py   <span class="c"># file specifico</span>
 pytest -k "somma"    <span class="c"># filtra per nome</span></pre>
+                </div>
+            </div>
         </div>
-    </div>
 
-    <div class="content">
-        <h2>Parametrize — test cases multipli</h2>
-        <p>Equivale a <code>[Theory]</code> + <code>[InlineData]</code> di xUnit.</p>
-        <div class="code-block" id="cb-param">
-            <button class="copy-btn" onclick="copyCode('cb-param')">copy</button>
-            <pre><span class="k">import</span> pytest
+        <div class="step" id="m04-2">
+            <div class="step-hd">
+                <div class="checkbox" onclick="toggleStep('m04-2')">✓</div>
+                <span class="step-title">Parametrize — test cases multipli</span>
+                <button class="step-toggle" onclick="toggleExpand('m04-2')">▾</button>
+            </div>
+            <div class="step-body">
+                <p>Equivale a <code>[Theory]</code> + <code>[InlineData]</code> di xUnit.</p>
+                <div class="code-block" id="cb-param">
+                    <button class="copy-btn" onclick="copyCode('cb-param')">copy</button>
+                    <pre><span class="k">import</span> pytest
 
 @pytest.mark.parametrize(<span class="s">"a, b, atteso"</span>, [
     (<span class="n">2</span>,  <span class="n">3</span>,  <span class="n">5</span>),
@@ -1522,15 +1574,21 @@ pytest -k "somma"    <span class="c"># filtra per nome</span></pre>
 ])
 <span class="k">def</span> test_somma(a, b, atteso):
     <span class="k">assert</span> somma(a, b) == atteso</pre>
+                </div>
+            </div>
         </div>
-    </div>
 
-    <div class="content">
-        <h2>Mock — isolare dipendenze</h2>
-        <p>Simile a Moq in C#. Isola il codice testato dalle dipendenze esterne (DB, API, file system).</p>
-        <div class="code-block" id="cb-mock">
-            <button class="copy-btn" onclick="copyCode('cb-mock')">copy</button>
-            <pre><span class="k">from</span> unittest.mock <span class="k">import</span> patch, MagicMock
+        <div class="step" id="m04-3">
+            <div class="step-hd">
+                <div class="checkbox" onclick="toggleStep('m04-3')">✓</div>
+                <span class="step-title">Mock — isolare dipendenze</span>
+                <button class="step-toggle" onclick="toggleExpand('m04-3')">▾</button>
+            </div>
+            <div class="step-body">
+                <p>Simile a Moq in C#. Isola il codice testato da DB, API, file system.</p>
+                <div class="code-block" id="cb-mock">
+                    <button class="copy-btn" onclick="copyCode('cb-mock')">copy</button>
+                    <pre><span class="k">from</span> unittest.mock <span class="k">import</span> patch, MagicMock
 
 <span class="k">def</span> test_fetch_user():
     mock_resp = MagicMock()
@@ -1539,9 +1597,11 @@ pytest -k "somma"    <span class="c"># filtra per nome</span></pre>
     <span class="k">with</span> patch(<span class="s">"requests.get"</span>, return_value=mock_resp):
         user = fetch_user(<span class="n">1</span>)
         <span class="k">assert</span> user[<span class="s">"nome"</span>] == <span class="s">"Alice"</span></pre>
+                </div>
+            </div>
         </div>
-    </div>
 
+    </div>
     <button class="complete-btn" id="btn-mod04" onclick="completeModule('mod04')">
         ✓ Segna modulo come completato
     </button>
@@ -1554,24 +1614,36 @@ pytest -k "somma"    <span class="c"># filtra per nome</span></pre>
         <h1>Automazione <span class="hl">Avanzata</span></h1>
         <p class="desc">Pipeline completa di review automatica. Metti insieme AST, radon, bandit e pytest in un solo script.</p>
     </div>
+    <div class="steps" style="max-width:680px">
 
-    <div class="content">
-        <h2>Architettura della pipeline</h2>
-        <ul>
-            <li>Input: file <code>.py</code> generato da AI</li>
-            <li>Step 1: parse AST — struttura, funzioni, complessità</li>
-            <li>Step 2: radon — metriche di complessità ciclomatica</li>
-            <li>Step 3: bandit — vulnerabilità di sicurezza</li>
-            <li>Step 4: pylint — qualità e stile del codice</li>
-            <li>Output: report JSON con score, issues, suggerimenti</li>
-        </ul>
-    </div>
+        <div class="step" id="m05-1">
+            <div class="step-hd">
+                <div class="checkbox" onclick="toggleStep('m05-1')">✓</div>
+                <span class="step-title">Architettura della pipeline</span>
+                <button class="step-toggle" onclick="toggleExpand('m05-1')">▾</button>
+            </div>
+            <div class="step-body">
+                <ul style="margin-top:8px">
+                    <li>Input: file <code>.py</code> generato da AI</li>
+                    <li>Step 1: parse AST — struttura, funzioni</li>
+                    <li>Step 2: radon — complessità ciclomatica</li>
+                    <li>Step 3: bandit — vulnerabilità di sicurezza</li>
+                    <li>Step 4: pylint — qualità e stile</li>
+                    <li>Output: report JSON con score e issues</li>
+                </ul>
+            </div>
+        </div>
 
-    <div class="content">
-        <h2>Pipeline — struttura base</h2>
-        <div class="code-block" id="cb-pipeline">
-            <button class="copy-btn" onclick="copyCode('cb-pipeline')">copy</button>
-            <pre><span class="k">import</span> ast, subprocess, json
+        <div class="step" id="m05-2">
+            <div class="step-hd">
+                <div class="checkbox" onclick="toggleStep('m05-2')">✓</div>
+                <span class="step-title">Pipeline — struttura base</span>
+                <button class="step-toggle" onclick="toggleExpand('m05-2')">▾</button>
+            </div>
+            <div class="step-body">
+                <div class="code-block" id="cb-pipeline">
+                    <button class="copy-btn" onclick="copyCode('cb-pipeline')">copy</button>
+                    <pre><span class="k">import</span> ast, subprocess, json
 <span class="k">from</span> dataclasses <span class="k">import</span> dataclass, field
 <span class="k">from</span> pathlib <span class="k">import</span> Path
 <span class="k">from</span> radon.complexity <span class="k">import</span> cc_visit
@@ -1582,7 +1654,6 @@ pytest -k "somma"    <span class="c"># filtra per nome</span></pre>
     funzioni:    list[dict] = field(default_factory=list)
     complessita: float = <span class="n">0.0</span>
     sicurezza:   list[dict] = field(default_factory=list)
-    lint_issues: list[str]  = field(default_factory=list)
     score:       float = <span class="n">100.0</span>
 
 <span class="k">def</span> analizza(path: str) -> ReviewResult:
@@ -1593,44 +1664,36 @@ pytest -k "somma"    <span class="c"># filtra per nome</span></pre>
     tree = ast.parse(codice)
     <span class="k">for</span> node <span class="k">in</span> ast.walk(tree):
         <span class="k">if</span> isinstance(node, ast.FunctionDef):
-            result.funzioni.append({
-                <span class="s">"nome"</span>:  node.name,
-                <span class="s">"linee"</span>: node.end_lineno - node.lineno,
-            })
+            result.funzioni.append({"nome": node.name, "linee": node.end_lineno - node.lineno})
 
-    <span class="c"># 2. Complessità (radon)</span>
+    <span class="c"># 2. Complessità</span>
     cc = cc_visit(codice)
     <span class="k">if</span> cc:
         result.complessita = sum(f.complexity <span class="k">for</span> f <span class="k">in</span> cc) / len(cc)
 
-    <span class="c"># 3. Sicurezza (bandit)</span>
-    out = subprocess.run(
-        [<span class="s">"bandit"</span>, path, <span class="s">"-f"</span>, <span class="s">"json"</span>],
-        capture_output=<span class="k">True</span>, text=<span class="k">True</span>
-    )
+    <span class="c"># 3. Sicurezza</span>
+    out = subprocess.run([<span class="s">"bandit"</span>, path, <span class="s">"-f"</span>, <span class="s">"json"</span>], capture_output=<span class="k">True</span>, text=<span class="k">True</span>)
     <span class="k">if</span> out.stdout:
-        data = json.loads(out.stdout)
-        result.sicurezza = data.get(<span class="s">"results"</span>, [])
+        result.sicurezza = json.loads(out.stdout).get(<span class="s">"results"</span>, [])
 
-    <span class="c"># Penalizza score</span>
     result.score -= len(result.sicurezza) * <span class="n">10</span>
     result.score -= max(<span class="n">0</span>, result.complessita - <span class="n">5</span>) * <span class="n">5</span>
-    result.score = max(<span class="n">0</span>, result.score)
-
+    result.score  = max(<span class="n">0</span>, result.score)
     <span class="k">return</span> result
 
 <span class="k">if</span> __name__ == <span class="s">"__main__"</span>:
     <span class="k">import</span> sys
     r = analizza(sys.argv[<span class="n">1</span>])
     print(json.dumps(r.__dict__, indent=<span class="n">2</span>, default=str))</pre>
+                </div>
+                <div class="callout">
+                    <div class="callout-lbl">🎯 Obiettivo finale</div>
+                    <p>Con questa pipeline valuti qualsiasi file Python generato da AI in pochi secondi. Prossimo step: wrapparlo in CLI o web API.</p>
+                </div>
+            </div>
         </div>
-    </div>
 
-    <div class="callout">
-        <div class="callout-lbl">🎯 Obiettivo finale</div>
-        <p>Con questa pipeline puoi valutare qualsiasi blocco di codice Python generato da AI in pochi secondi. Il prossimo step è wrapparlo in un'interfaccia CLI o web API.</p>
     </div>
-
     <button class="complete-btn" id="btn-mod05" onclick="completeModule('mod05')">
         ✓ Segna modulo come completato
     </button>
@@ -1641,60 +1704,67 @@ pytest -k "somma"    <span class="c"># filtra per nome</span></pre>
     <div class="sec-head">
         <div class="badge">Esercizi</div>
         <h1>Codice AI <span class="hl">Reale</span></h1>
-        <p class="desc">Analizza snippet reali generati da ChatGPT, Claude e Copilot. Trova i bug, le inefficienze, i pattern.</p>
+        <p class="desc">Analizza snippet reali generati da ChatGPT, Claude e Copilot. Spunta quando hai trovato i problemi.</p>
     </div>
+    <div class="steps" style="max-width:680px">
 
-    <div class="row-header">
-        <h2>Esercizi disponibili</h2><div class="row-line"></div>
-    </div>
-
-    <div class="ex-card">
-        <div class="ex-num">EX-01</div>
-        <div class="ex-title">FastAPI CRUD — generato da ChatGPT</div>
-        <p class="ex-desc">Endpoint REST con SQLAlchemy. Trova almeno 3 problemi: N+1 query, mancanza di validazione input, gestione errori assente.</p>
-        <div class="ex-tags">
-            <span class="diff medium">medio</span>
-            <span class="tag">FastAPI</span>
-            <span class="tag">SQLAlchemy</span>
-            <span class="tag">AST</span>
+        <div class="step" id="ex-1">
+            <div class="step-hd">
+                <div class="checkbox" onclick="toggleStep('ex-1')">✓</div>
+                <span class="step-title">EX-01 — FastAPI CRUD (ChatGPT) <span class="diff medium" style="margin-left:8px">medio</span></span>
+                <button class="step-toggle" onclick="toggleExpand('ex-1')">▾</button>
+            </div>
+            <div class="step-body">
+                <p>Endpoint REST con SQLAlchemy. Trova almeno 3 problemi: N+1 query, mancanza di validazione input, gestione errori assente.</p>
+                <div class="mod-tags" style="margin-top:8px">
+                    <span class="tag">FastAPI</span><span class="tag">SQLAlchemy</span><span class="tag">AST</span>
+                </div>
+            </div>
         </div>
-    </div>
 
-    <div class="ex-card">
-        <div class="ex-num">EX-02</div>
-        <div class="ex-title">Script data processing — generato da Claude</div>
-        <p class="ex-desc">Pandas + numpy per elaborare CSV. Trova: memory leak, tipo errato, edge case su DataFrame vuoto.</p>
-        <div class="ex-tags">
-            <span class="diff easy">facile</span>
-            <span class="tag">pandas</span>
-            <span class="tag">numpy</span>
+        <div class="step" id="ex-2">
+            <div class="step-hd">
+                <div class="checkbox" onclick="toggleStep('ex-2')">✓</div>
+                <span class="step-title">EX-02 — Data processing (Claude) <span class="diff easy" style="margin-left:8px">facile</span></span>
+                <button class="step-toggle" onclick="toggleExpand('ex-2')">▾</button>
+            </div>
+            <div class="step-body">
+                <p>Pandas + numpy per elaborare CSV. Trova: memory leak, tipo errato, edge case su DataFrame vuoto.</p>
+                <div class="mod-tags" style="margin-top:8px">
+                    <span class="tag">pandas</span><span class="tag">numpy</span>
+                </div>
+            </div>
         </div>
-    </div>
 
-    <div class="ex-card">
-        <div class="ex-num">EX-03</div>
-        <div class="ex-title">Auth JWT — generato da Copilot</div>
-        <p class="ex-desc">Implementazione JWT completa. Trova le vulnerabilità (bandit), i path non testati, la complessità eccessiva.</p>
-        <div class="ex-tags">
-            <span class="diff hard">difficile</span>
-            <span class="tag">sicurezza</span>
-            <span class="tag">JWT</span>
-            <span class="tag">bandit</span>
+        <div class="step" id="ex-3">
+            <div class="step-hd">
+                <div class="checkbox" onclick="toggleStep('ex-3')">✓</div>
+                <span class="step-title">EX-03 — Auth JWT (Copilot) <span class="diff hard" style="margin-left:8px">difficile</span></span>
+                <button class="step-toggle" onclick="toggleExpand('ex-3')">▾</button>
+            </div>
+            <div class="step-body">
+                <p>Implementazione JWT completa. Trova le vulnerabilità (bandit), path non testati, complessità eccessiva.</p>
+                <div class="mod-tags" style="margin-top:8px">
+                    <span class="tag">sicurezza</span><span class="tag">JWT</span><span class="tag">bandit</span>
+                </div>
+            </div>
         </div>
-    </div>
 
-    <div class="ex-card">
-        <div class="ex-num">EX-04</div>
-        <div class="ex-title">Pipeline async — generato da Gemini</div>
-        <p class="ex-desc">Script asyncio con aiohttp. Trova: race condition, mancanza di timeout, exception swallowing.</p>
-        <div class="ex-tags">
-            <span class="diff hard">difficile</span>
-            <span class="tag">asyncio</span>
-            <span class="tag">aiohttp</span>
-            <span class="tag">concorrenza</span>
+        <div class="step" id="ex-4">
+            <div class="step-hd">
+                <div class="checkbox" onclick="toggleStep('ex-4')">✓</div>
+                <span class="step-title">EX-04 — Pipeline async (Gemini) <span class="diff hard" style="margin-left:8px">difficile</span></span>
+                <button class="step-toggle" onclick="toggleExpand('ex-4')">▾</button>
+            </div>
+            <div class="step-body">
+                <p>Script asyncio con aiohttp. Trova: race condition, mancanza di timeout, exception swallowing.</p>
+                <div class="mod-tags" style="margin-top:8px">
+                    <span class="tag">asyncio</span><span class="tag">aiohttp</span><span class="tag">concorrenza</span>
+                </div>
+            </div>
         </div>
-    </div>
 
+    </div>
     <button class="complete-btn" id="btn-ex" onclick="completeModule('ex')">
         ✓ Segna esercizi come completati
     </button>
@@ -2043,16 +2113,6 @@ document.addEventListener('keydown', e => {
     if (e.key === 'r') resetProgress();
 });
 
-// ─── Toggle percorso completo ─────────────────────────────────────
-function toggleModules() {
-    const cards  = document.getElementById('modCards');
-    const toggle = document.getElementById('modulesToggle');
-    const open   = !cards.classList.contains('collapsed');
-    cards.classList.toggle('collapsed', open);
-    toggle.textContent = open ? '▸ apri' : '▾ chiudi';
-    db.modulesCollapsed = open;
-    dbSave(db);
-}
 
 // ─── Init ─────────────────────────────────────────────────────────
 (function init() {
@@ -2067,13 +2127,6 @@ function toggleModules() {
     refreshUI();
     refreshSetupBar();
 
-    // Ripristina stato collapse percorso
-    if (db.modulesCollapsed) {
-        const cards  = document.getElementById('modCards');
-        const toggle = document.getElementById('modulesToggle');
-        if (cards)  cards.classList.add('collapsed');
-        if (toggle) toggle.textContent = '▸ apri';
-    }
 })();
 </script>
 </body>
