@@ -1778,39 +1778,51 @@ pytest -k "somma"    <span class="c"># filtra per nome</span></pre>
         <h1>Crea il tuo <span class="hl">Agente AI</span></h1>
         <p class="desc">Con AGNO framework in Python. Solo per capire — niente produzione, niente architetture complesse.</p>
     </div>
+    <div class="steps" style="max-width:680px">
 
-    <div class="content">
-        <h2>Cos'è un agente AI</h2>
-        <p>Un agente non è una semplice chiamata a un LLM. È un programma che:</p>
-        <ul>
-            <li>Riceve un obiettivo in linguaggio naturale</li>
-            <li><strong>Decide autonomamente</strong> quali strumenti usare per raggiungerlo</li>
-            <li>Esegue azioni (web search, calcoli, lettura file…)</li>
-            <li>Ragiona sul risultato e itera finché ha la risposta</li>
-        </ul>
-        <div class="vs" style="grid-template-columns:1fr;">
-            <div class="vs-col single">
-                <div class="vs-lang">Differenza concettuale</div>
-                <pre><span class="c"># NON è un agente — risposta fissa dal modello</span>
+        <div class="step" id="b-1">
+            <div class="step-hd">
+                <div class="checkbox" onclick="toggleStep('b-1')">✓</div>
+                <span class="step-title">Cos'è un agente AI</span>
+                <button class="step-toggle" onclick="toggleExpand('b-1')">▾</button>
+            </div>
+            <div class="step-body">
+                <p>Un agente non è una semplice chiamata a un LLM. È un programma che:</p>
+                <ul>
+                    <li>Riceve un obiettivo in linguaggio naturale</li>
+                    <li><strong>Decide autonomamente</strong> quali strumenti usare per raggiungerlo</li>
+                    <li>Esegue azioni (web search, calcoli, lettura file…)</li>
+                    <li>Ragiona sul risultato e itera finché ha la risposta</li>
+                </ul>
+                <div class="vs" style="grid-template-columns:1fr;margin-top:16px">
+                    <div class="vs-col single">
+                        <div class="vs-lang">Differenza concettuale</div>
+                        <pre><span class="c"># NON è un agente — risposta fissa dal modello</span>
 response = claude.messages.create(prompt=<span class="s">"Che tempo fa a Milano?"</span>)
 
 <span class="c"># È un agente — decide di chiamare un tool meteo</span>
 agent.run(<span class="s">"Che tempo fa a Milano?"</span>)
 <span class="c"># → sceglie WeatherTool → chiama API → risponde con dati reali</span></pre>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="content">
-        <h2>AGNO framework</h2>
-        <p>AGNO è un framework Python per costruire agenti, team di agenti e workflow. Supporta OpenAI, Anthropic (Claude), Google e modelli locali. È la cosa più vicina a un "runtime per agenti" disponibile oggi.</p>
-        <div class="callout">
-            <div class="callout-lbl">📦 Installazione</div>
-            <p>Una sola riga, poi configura la tua API key.</p>
-        </div>
-        <div class="code-block" id="cb-agno-install">
-            <button class="copy-btn" onclick="copyCode('cb-agno-install')">copy</button>
-            <pre>pip install agno
+        <div class="step" id="b-2">
+            <div class="step-hd">
+                <div class="checkbox" onclick="toggleStep('b-2')">✓</div>
+                <span class="step-title">AGNO framework — installazione</span>
+                <button class="step-toggle" onclick="toggleExpand('b-2')">▾</button>
+            </div>
+            <div class="step-body">
+                <p>AGNO è un framework Python per costruire agenti, team di agenti e workflow. Supporta OpenAI, Anthropic (Claude), Google e modelli locali.</p>
+                <div class="callout">
+                    <div class="callout-lbl">📦 Installazione</div>
+                    <p>Una sola riga, poi configura la tua API key.</p>
+                </div>
+                <div class="code-block" id="cb-agno-install">
+                    <button class="copy-btn" onclick="copyCode('cb-agno-install')">copy</button>
+                    <pre>pip install agno
 
 <span class="c"># API key Anthropic (o OpenAI se preferisci)</span>
 <span class="c"># Windows PowerShell:</span>
@@ -1818,15 +1830,21 @@ $env:ANTHROPIC_API_KEY = "sk-ant-..."
 
 <span class="c"># oppure crea un file .env nel progetto:</span>
 <span class="c"># ANTHROPIC_API_KEY=sk-ant-...</span></pre>
+                </div>
+            </div>
         </div>
-    </div>
 
-    <div class="content">
-        <h2>Agente base — minimo indispensabile</h2>
-        <p>Tre righe per un agente funzionante con Claude. Fonte: <span style="color:var(--accent)">docs.agno.com</span></p>
-        <div class="code-block" id="cb-agno-basic">
-            <button class="copy-btn" onclick="copyCode('cb-agno-basic')">copy</button>
-            <pre><span class="k">from</span> agno.agent <span class="k">import</span> Agent
+        <div class="step" id="b-3">
+            <div class="step-hd">
+                <div class="checkbox" onclick="toggleStep('b-3')">✓</div>
+                <span class="step-title">Agente base — minimo indispensabile</span>
+                <button class="step-toggle" onclick="toggleExpand('b-3')">▾</button>
+            </div>
+            <div class="step-body">
+                <p>Tre righe per un agente funzionante con Claude. Fonte: <span style="color:var(--accent)">docs.agno.com</span></p>
+                <div class="code-block" id="cb-agno-basic">
+                    <button class="copy-btn" onclick="copyCode('cb-agno-basic')">copy</button>
+                    <pre><span class="k">from</span> agno.agent <span class="k">import</span> Agent
 <span class="k">from</span> agno.models.anthropic <span class="k">import</span> Claude
 
 <span class="c"># Crea l'agente</span>
@@ -1840,15 +1858,21 @@ agent.print_response(<span class="s">"Spiega il duck typing Python in 3 punti"</
 
 <span class="c"># Con streaming (come ChatGPT — carattere per carattere)</span>
 agent.print_response(<span class="s">"Spiega il duck typing Python in 3 punti"</span>, stream=<span class="k">True</span>)</pre>
+                </div>
+            </div>
         </div>
-    </div>
 
-    <div class="content">
-        <h2>Agente con istruzioni — personalizza il comportamento</h2>
-        <p>Le istruzioni definiscono il "carattere" dell'agente. Equivale al system prompt, ma strutturato.</p>
-        <div class="code-block" id="cb-agno-instructions">
-            <button class="copy-btn" onclick="copyCode('cb-agno-instructions')">copy</button>
-            <pre><span class="k">from</span> agno.agent <span class="k">import</span> Agent
+        <div class="step" id="b-4">
+            <div class="step-hd">
+                <div class="checkbox" onclick="toggleStep('b-4')">✓</div>
+                <span class="step-title">Agente con istruzioni — personalizza il comportamento</span>
+                <button class="step-toggle" onclick="toggleExpand('b-4')">▾</button>
+            </div>
+            <div class="step-body">
+                <p>Le istruzioni definiscono il "carattere" dell'agente. Equivale al system prompt, ma strutturato.</p>
+                <div class="code-block" id="cb-agno-instructions">
+                    <button class="copy-btn" onclick="copyCode('cb-agno-instructions')">copy</button>
+                    <pre><span class="k">from</span> agno.agent <span class="k">import</span> Agent
 <span class="k">from</span> agno.models.anthropic <span class="k">import</span> Claude
 
 instructions = <span class="s">"""\
@@ -1864,15 +1888,21 @@ agent = Agent(
 )
 
 agent.print_response(<span class="s">"Come funzionano i decoratori in Python?"</span>, stream=<span class="k">True</span>)</pre>
+                </div>
+            </div>
         </div>
-    </div>
 
-    <div class="content">
-        <h2>Agente con tool — l'agente fa cose reali</h2>
-        <p>Aggiungi tool e l'agente decide <em>da solo</em> quando e come usarli. Questo è il salto concettuale chiave.</p>
-        <div class="code-block" id="cb-agno-tools">
-            <button class="copy-btn" onclick="copyCode('cb-agno-tools')">copy</button>
-            <pre><span class="k">from</span> agno.agent <span class="k">import</span> Agent
+        <div class="step" id="b-5">
+            <div class="step-hd">
+                <div class="checkbox" onclick="toggleStep('b-5')">✓</div>
+                <span class="step-title">Agente con tool — l'agente fa cose reali</span>
+                <button class="step-toggle" onclick="toggleExpand('b-5')">▾</button>
+            </div>
+            <div class="step-body">
+                <p>Aggiungi tool e l'agente decide <em>da solo</em> quando e come usarli. Questo è il salto concettuale chiave.</p>
+                <div class="code-block" id="cb-agno-tools">
+                    <button class="copy-btn" onclick="copyCode('cb-agno-tools')">copy</button>
+                    <pre><span class="k">from</span> agno.agent <span class="k">import</span> Agent
 <span class="k">from</span> agno.models.anthropic <span class="k">import</span> Claude
 <span class="k">from</span> agno.tools.duckduckgo <span class="k">import</span> DuckDuckGoTools
 
@@ -1890,25 +1920,31 @@ agent.print_response(
     <span class="s">"Quali sono le novità di Python 3.13?"</span>,
     stream=<span class="k">True</span>
 )</pre>
+                </div>
+                <div class="callout">
+                    <div class="callout-lbl">🧠 Cosa succede internamente</div>
+                    <p>
+                        1. LLM riceve la domanda<br>
+                        2. Decide: "ho bisogno di info aggiornate → uso DuckDuckGo"<br>
+                        3. Chiama il tool → ottiene risultati<br>
+                        4. Elabora i risultati → risponde<br>
+                        Tutto automatico. Tu hai solo scritto <code>tools=[DuckDuckGoTools()]</code>.
+                    </p>
+                </div>
+            </div>
         </div>
-        <div class="callout">
-            <div class="callout-lbl">🧠 Cosa succede internamente</div>
-            <p>
-                1. LLM riceve la domanda<br>
-                2. Decide: "ho bisogno di info aggiornate → uso DuckDuckGo"<br>
-                3. Chiama il tool → ottiene risultati<br>
-                4. Elabora i risultati → risponde<br>
-                Tutto automatico. Tu hai solo scritto <code>tools=[DuckDuckGoTools()]</code>.
-            </p>
-        </div>
-    </div>
 
-    <div class="content">
-        <h2>Tool personalizzato — funzioni Python qualsiasi</h2>
-        <p>Qualsiasi funzione Python diventa un tool. AGNO usa il docstring e i type hint per spiegare al LLM quando usarla.</p>
-        <div class="code-block" id="cb-agno-custom-tool">
-            <button class="copy-btn" onclick="copyCode('cb-agno-custom-tool')">copy</button>
-            <pre><span class="k">from</span> agno.agent <span class="k">import</span> Agent
+        <div class="step" id="b-6">
+            <div class="step-hd">
+                <div class="checkbox" onclick="toggleStep('b-6')">✓</div>
+                <span class="step-title">Tool personalizzato — funzioni Python qualsiasi</span>
+                <button class="step-toggle" onclick="toggleExpand('b-6')">▾</button>
+            </div>
+            <div class="step-body">
+                <p>Qualsiasi funzione Python diventa un tool. AGNO usa il docstring e i type hint per spiegare al LLM quando usarla.</p>
+                <div class="code-block" id="cb-agno-custom-tool">
+                    <button class="copy-btn" onclick="copyCode('cb-agno-custom-tool')">copy</button>
+                    <pre><span class="k">from</span> agno.agent <span class="k">import</span> Agent
 <span class="k">from</span> agno.models.anthropic <span class="k">import</span> Claude
 <span class="k">import</span> ast
 
@@ -1940,19 +1976,25 @@ agent.print_response(
     <span class="s">f"Analizza questo codice:\n{codice_da_analizzare}"</span>,
     stream=<span class="k">True</span>
 )</pre>
+                </div>
+                <div class="callout">
+                    <div class="callout-lbl">💡 Connessione con il corso</div>
+                    <p>Il tool <code>analizza_python</code> usa esattamente il modulo <code>ast</code> del Modulo 03. Hai già tutto quello che serve per costruire un agente che fa review automatica di codice AI.</p>
+                </div>
+            </div>
         </div>
-        <div class="callout">
-            <div class="callout-lbl">💡 Connessione con il corso</div>
-            <p>Il tool <code>analizza_python</code> usa esattamente il modulo <code>ast</code> del Modulo 03. Hai già tutto quello che serve per costruire un agente che fa review automatica di codice AI.</p>
-        </div>
-    </div>
 
-    <div class="content">
-        <h2>Concetti chiave — mappa mentale</h2>
-        <div class="vs" style="grid-template-columns:1fr;">
-            <div class="vs-col single">
-                <div class="vs-lang">Architettura di un agente AGNO</div>
-                <pre><span class="k">Agent</span>(
+        <div class="step" id="b-7">
+            <div class="step-hd">
+                <div class="checkbox" onclick="toggleStep('b-7')">✓</div>
+                <span class="step-title">Concetti chiave — mappa mentale</span>
+                <button class="step-toggle" onclick="toggleExpand('b-7')">▾</button>
+            </div>
+            <div class="step-body">
+                <div class="vs" style="grid-template-columns:1fr;">
+                    <div class="vs-col single">
+                        <div class="vs-lang">Architettura di un agente AGNO</div>
+                        <pre><span class="k">Agent</span>(
     model=<span class="k">Claude</span>(...)        <span class="c"># il "cervello" — LLM che ragiona</span>
     instructions=<span class="s">"..."</span>     <span class="c"># comportamento e personalità</span>
     tools=[<span class="k">...</span>]            <span class="c"># azioni che può eseguire</span>
@@ -1960,18 +2002,27 @@ agent.print_response(
     memory=<span class="k">...</span>             <span class="c"># memoria tra sessioni diverse</span>
     storage=<span class="k">...</span>            <span class="c"># dove salvare lo stato</span>
 )</pre>
+                    </div>
+                </div>
+                <p style="margin-top:16px">Per questo corso bastano <code>model</code>, <code>instructions</code> e <code>tools</code>. Il resto è per produzione.</p>
             </div>
         </div>
-        <p style="margin-top:16px">Per questo corso bastano <code>model</code>, <code>instructions</code> e <code>tools</code>. Il resto è per produzione.</p>
-    </div>
 
-    <div class="content">
-        <h2>Cosa costruire come esercizio</h2>
-        <ul>
-            <li>Agente che riceve un file <code>.py</code> e fa review automatica (usa AST + bandit come tool)</li>
-            <li>Agente che spiega codice AI in termini C# / .NET</li>
-            <li>Agente che confronta due snippet e dice quale è più Pythonic</li>
-        </ul>
+        <div class="step" id="b-8">
+            <div class="step-hd">
+                <div class="checkbox" onclick="toggleStep('b-8')">✓</div>
+                <span class="step-title">Cosa costruire come esercizio</span>
+                <button class="step-toggle" onclick="toggleExpand('b-8')">▾</button>
+            </div>
+            <div class="step-body">
+                <ul>
+                    <li>Agente che riceve un file <code>.py</code> e fa review automatica (usa AST + bandit come tool)</li>
+                    <li>Agente che spiega codice AI in termini C# / .NET</li>
+                    <li>Agente che confronta due snippet e dice quale è più Pythonic</li>
+                </ul>
+            </div>
+        </div>
+
     </div>
 
     <button class="complete-btn" id="btn-bonus" onclick="completeModule('bonus')">
